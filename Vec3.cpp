@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Vec3.h"
 
 Vec3f::Vec3f()
