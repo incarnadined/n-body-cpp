@@ -38,6 +38,8 @@ private:
 
 	float starConcentration; // star intensity (0-1)
 	Vec3f cameraPos;
+	int mWidth;
+	int mHeight;
 
 	// com objects
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;

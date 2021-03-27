@@ -7,7 +7,7 @@
 #define THROWHR(hr) if(FAILED(hr)) {MessageBox(nullptr, (LPCWSTR)__LINE__, L"HR Error", MB_OK);}
 
 Graphics::Graphics()
-	: cameraPos(0.0f, 0.0f, 0.0f), starConcentration(0.5)
+	: cameraPos(0.0f, 0.0f, 0.0f), starConcentration(0.5), mWidth(800), mHeight(600)
 {
 }
 
@@ -18,6 +18,8 @@ Graphics::~Graphics()
 void Graphics::Init(HWND hWnd, int width, int height)
 {
 	HRESULT hr;
+	mWidth = width;
+	mHeight = height;
 
 	DXGI_SWAP_CHAIN_DESC sd = {};
 	sd.BufferDesc.Width = 0;
@@ -274,6 +276,21 @@ void Graphics::Draw()
 	);
 	
 	// define the input layout
+	const D3D11_INPUT_ELEMENT_DESC iLayout[] =
+	{
+		{"Position", 0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u, 0u, D3D11_INPUT_PER_VERTEX_DATA, 0u},
+		{"Colour", 0u, DXGI_FORMAT_R8G8B8A8_UNORM, 0u, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0u}
+	};
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
+	THROWHR(pDevice->CreateInputLayout(
+		iLayout,
+		std::size(iLayout),
+		pBlobVS.Get(),
+		pBlobVS->GetBufferSize(),
+		pLayout.GetAddressOf()
+	));
+	pDeviceContext->IASetInputLayout(pLayout.Get());
+
 }
 
 void Graphics::EndFrame()
