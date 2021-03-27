@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Graphics.h"
 
 #pragma comment (lib, "d3d11.lib")
@@ -5,6 +6,7 @@
 #define THROWHR(hr) if(FAILED(hr)) {MessageBox(nullptr, (LPCWSTR)__LINE__, L"HR Error", MB_OK);}
 
 Graphics::Graphics()
+	: cameraPos(0.0f, 0.0f, 0.0f), starConcentration(0.5)
 {
 }
 
@@ -33,19 +35,19 @@ void Graphics::Init(HWND hWnd, int width, int height)
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
 
-	THROWHR(D3D11CreateDeviceAndSwapChain(
+	hr = D3D11CreateDeviceAndSwapChain(
 		NULL,
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
 		D3D11_CREATE_DEVICE_DEBUG,
 		NULL,
-		6u,
+		0,
 		D3D11_SDK_VERSION,
 		&sd,
 		&pSwapChain,
 		&pDevice,
 		NULL,
-		&pDeviceContext));
+		&pDeviceContext);
 
 	// Generate the rtv
 	Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
@@ -96,11 +98,14 @@ void Graphics::BindPixelShader(std::wstring filepath)
 {
 }
 
-void Graphics::Clear(colour colour)
+void Graphics::Clear(Colour colour)
 {
+	float c[4] = { colour.r, colour.g, colour.b, colour.a };
+	pDeviceContext->ClearRenderTargetView(pRTV.Get(), c);
+	pDeviceContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
 
-bool Graphics::AddSphere(std::function<std::tuple<float, colour, Vec3f>()> dataFunction)
+bool Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataFunction)
 {
 	return false;
 }
@@ -111,6 +116,7 @@ void Graphics::Draw()
 
 void Graphics::EndFrame()
 {
+	pSwapChain->Present(1u, 0u);
 }
 
 float Graphics::GetStarConc()

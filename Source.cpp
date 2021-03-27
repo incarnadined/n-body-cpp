@@ -1,8 +1,9 @@
 #include "pch.h"
 
 #include "Vec3.h"
+#include "Graphics.h"
 
-#define WIDTH 600
+#define WIDTH 800
 #define HEIGHT 600
 
 LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
@@ -18,6 +19,8 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	Graphics gfx;
+
 	WNDCLASSEX wc;
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -32,8 +35,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	RegisterClassEx(&wc);
 
+	// calculate the window dimensions to ensure the client area is WIDTH*HEIGHT
+	RECT clientArea = {};
+	clientArea.right = WIDTH;
+	clientArea.bottom = HEIGHT;
+	AdjustWindowRect(&clientArea, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE, false);
+
 	HWND hWnd = CreateWindowEx(NULL, L"N-Body-Class", L"N-Body Simulation", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE,
-		200, 200, WIDTH, HEIGHT, NULL, NULL, hInstance, NULL);
+		200, 200, clientArea.right-clientArea.left, clientArea.bottom-clientArea.top, NULL, NULL, hInstance, NULL);
+
+	gfx.Init(hWnd, WIDTH, HEIGHT);
 
 	MSG msg;
 	while (true)
@@ -49,5 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 
 		// Render
+		gfx.Clear(Colour(1.0f, 0.0f, 1.0f));
+		gfx.EndFrame();
 	}
 }
