@@ -19,7 +19,7 @@ public:
 
 	// Getters/Setters
 	float GetStarConc();
-	void SetStarConc();
+	void SetStarConc(float conc);
 	Vec3f GetCameraPos();
 	void MoveCamera(Vec3f translation);
 

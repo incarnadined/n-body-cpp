@@ -183,8 +183,9 @@ float Graphics::GetStarConc()
 	return 0.0f;
 }
 
-void Graphics::SetStarConc()
+void Graphics::SetStarConc(float conc)
 {
+	starConcentration = std::max(0.0f, std::min(conc, 1.0f));
 }
 
 Vec3f Graphics::GetCameraPos()
