@@ -45,6 +45,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		200, 200, clientArea.right-clientArea.left, clientArea.bottom-clientArea.top, NULL, NULL, hInstance, NULL);
 
 	gfx.Init(hWnd, WIDTH, HEIGHT);
+	gfx.BindVertexShader(L"G:\\Coding Projects\\n-body-cpp\\VertexShader.hlsl");
 
 	MSG msg;
 	while (true)
@@ -60,7 +61,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 
 		// Render
-		gfx.Clear(Colour(1.0f, 0.0f, 1.0f));
+		gfx.Clear(Colour(0x08_uc, 0x1e_uc, 0x39_uc));
 		gfx.EndFrame();
 	}
 }

@@ -38,5 +38,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pDeviceContext;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRTV;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDSV;
+	Microsoft::WRL::ComPtr<ID3DBlob> pBlobVS;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> pVS;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pPS;
 };
 

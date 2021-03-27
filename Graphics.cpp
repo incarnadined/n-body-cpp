@@ -2,6 +2,7 @@
 #include "Graphics.h"
 
 #pragma comment (lib, "d3d11.lib")
+#pragma comment (lib, "D3DCompiler.lib")
 
 #define THROWHR(hr) if(FAILED(hr)) {MessageBox(nullptr, (LPCWSTR)__LINE__, L"HR Error", MB_OK);}
 
@@ -35,7 +36,7 @@ void Graphics::Init(HWND hWnd, int width, int height)
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
 
-	hr = D3D11CreateDeviceAndSwapChain(
+	THROWHR(D3D11CreateDeviceAndSwapChain(
 		NULL,
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
@@ -47,7 +48,7 @@ void Graphics::Init(HWND hWnd, int width, int height)
 		&pSwapChain,
 		&pDevice,
 		NULL,
-		&pDeviceContext);
+		&pDeviceContext));
 
 	// Generate the rtv
 	Microsoft::WRL::ComPtr<ID3D11Resource> pBackBuffer;
@@ -92,10 +93,68 @@ void Graphics::Init(HWND hWnd, int width, int height)
 
 void Graphics::BindVertexShader(std::wstring filepath)
 {
+	// compile shader
+	Microsoft::WRL::ComPtr<ID3DBlob> errors;
+	THROWHR(D3DCompileFromFile(
+		filepath.c_str(),
+		NULL,
+		NULL,
+		"main",
+		"vs_5_0",
+		0,
+		0,
+		&pBlobVS,
+		&errors
+	));
+
+	// load shader
+	THROWHR(pDevice->CreateVertexShader(
+		pBlobVS.Get(),
+		pBlobVS->GetBufferSize(),
+		NULL,
+		&pVS
+	));
+
+	// set shader
+	pDeviceContext->VSSetShader(
+		pVS.Get(),
+		NULL,
+		0
+	);
 }
 
 void Graphics::BindPixelShader(std::wstring filepath)
 {
+	Microsoft::WRL::ComPtr<ID3DBlob> pBlobPS;
+
+	// compile shader
+	Microsoft::WRL::ComPtr<ID3DBlob> errors;
+	THROWHR(D3DCompileFromFile(
+		filepath.c_str(),
+		NULL,
+		NULL,
+		"main",
+		"ps_5_0",
+		0,
+		0,
+		&pBlobPS,
+		&errors
+	));
+
+	// load shader
+	THROWHR(pDevice->CreatePixelShader(
+		pBlobPS.Get(),
+		pBlobPS->GetBufferSize(),
+		NULL,
+		&pPS
+	));
+
+	// set shader
+	pDeviceContext->PSSetShader(
+		pPS.Get(),
+		NULL,
+		0
+	);
 }
 
 void Graphics::Clear(Colour colour)
