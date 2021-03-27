@@ -10,11 +10,12 @@ public:
 	~Graphics();
 
 	void Init(HWND hWnd, int width, int height);
+	void BindVertexShader(std::wstring filepath);
+	void BindPixelShader(std::wstring filepath);
 	void Clear(colour colour); // clears the screen to the specified colour - resets rtv, dsv
 	bool AddSphere(std::function<std::tuple<float, colour, Vec3f>()> dataFunction); // adds a sphere location callback to the active drawable objects - returns true on success
 	void Draw(); 
 	void EndFrame();
-
 
 	// Getters/Setters
 	float GetStarConc();

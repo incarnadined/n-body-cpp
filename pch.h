@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <functional>
+#include <string>
 
 #include <windows.h>
 #include <d3d11.h>
