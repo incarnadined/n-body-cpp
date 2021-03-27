@@ -166,11 +166,92 @@ void Graphics::Clear(Colour colour)
 
 bool Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataFunction)
 {
-	return false;
+	pSpheres.push_back(dataFunction);
+}
+
+std::pair<std::vector<Vertex>, std::vector<int>> Graphics::GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset)
+{
+	std::vector<Vertex> verticies =
+	{
+		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b},
+		{position.GetX() - radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b},
+		{position.GetX() + radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b},
+		{position.GetX() + radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b},
+		{position.GetX() + radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b},
+		{position.GetX() + radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b},
+		{position.GetX() - radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b},
+		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b},
+	};
+
+	std::vector<int> indicies =
+	{
+		0, 2, 1,
+		0, 3, 2,
+		3, 4, 2,
+		3, 5, 4,
+		5, 6, 4,
+		5, 7, 6,
+		7, 1, 6,
+		7, 0, 1,
+		6, 0, 2,
+		6, 2, 1,
+		7, 5, 3,
+		7, 3, 0
+	};
+	for (size_t i; i < indicies.size(); i++) 
+	{
+		indicies[i] += offset; // add current offset in data to all indicies
+	}; 
+
+	return std::make_pair(verticies, indicies);
 }
 
 void Graphics::Draw()
-{
+{		
+	// retrieve vertex and index buffer data for the active spheres
+	std::vector<Vertex> VData;
+	std::vector<int> IData;
+	for (std::size_t i; i < pSpheres.size(); i++)
+	{
+		auto data = pSpheres[i]();
+		if (std::get<0>(data) == 0.0f)
+			continue; // if the radius is 0, the sphere is void and should not be rendered
+		auto points = GenerateSphere(std::get<0>(data), std::get<1>(data), std::get<2>(data), VData.size());
+		VData.insert(VData.end(), points.first.begin(), points.first.end());
+		IData.insert(IData.end(), points.second.begin(), points.second.end());
+	}
+
+	// create the vertex buffer
+	D3D11_BUFFER_DESC VBufferDesc = {};
+	VBufferDesc.ByteWidth = VData.size();
+	VBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	VBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	VBufferDesc.CPUAccessFlags = 0u;
+	VBufferDesc.MiscFlags = 0u;
+	VBufferDesc.StructureByteStride = sizeof(Vertex);
+	D3D11_SUBRESOURCE_DATA VBufferSR = {};
+	VBufferSR.pSysMem = VData.data();
+	VBufferSR.SysMemPitch = NULL;
+	VBufferSR.SysMemSlicePitch = NULL;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> VertexBuffer;
+	THROWHR(pDevice->CreateBuffer(
+		&VBufferDesc,
+		&VBufferSR,
+		&VertexBuffer
+	));
+	const UINT strides = sizeof(Vertex);
+	const UINT offsets = 0u;
+	pDeviceContext->IASetVertexBuffers(
+		0u,
+		1u,
+		VertexBuffer.GetAddressOf(),
+		&strides,
+		&offsets
+	);
+
+	// create the index buffer
+
+	// define the input layout
 }
 
 void Graphics::EndFrame()
@@ -180,7 +261,7 @@ void Graphics::EndFrame()
 
 float Graphics::GetStarConc()
 {
-	return 0.0f;
+	return starConcentration;
 }
 
 void Graphics::SetStarConc(float conc)
@@ -190,9 +271,10 @@ void Graphics::SetStarConc(float conc)
 
 Vec3f Graphics::GetCameraPos()
 {
-	return Vec3f();
+	return cameraPos;
 }
 
 void Graphics::MoveCamera(Vec3f translation)
 {
+	cameraPos += translation;
 }
