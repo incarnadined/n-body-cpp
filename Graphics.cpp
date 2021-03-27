@@ -17,7 +17,7 @@ Graphics::~Graphics()
 
 void Graphics::Init(HWND hWnd, int width, int height)
 {
-	HRESULT hr;
+	HRESULT hr = 0;
 	mWidth = width;
 	mHeight = height;
 
@@ -95,6 +95,7 @@ void Graphics::Init(HWND hWnd, int width, int height)
 
 void Graphics::BindVertexShader(std::wstring filepath)
 {
+	HRESULT hr = 0;
 	// compile shader
 	Microsoft::WRL::ComPtr<ID3DBlob> errors;
 	THROWHR(D3DCompileFromFile(
@@ -111,7 +112,7 @@ void Graphics::BindVertexShader(std::wstring filepath)
 
 	// load shader
 	THROWHR(pDevice->CreateVertexShader(
-		pBlobVS.Get(),
+		pBlobVS->GetBufferPointer(),
 		pBlobVS->GetBufferSize(),
 		NULL,
 		&pVS
@@ -145,7 +146,7 @@ void Graphics::BindPixelShader(std::wstring filepath)
 
 	// load shader
 	THROWHR(pDevice->CreatePixelShader(
-		pBlobPS.Get(),
+		pBlobPS->GetBufferPointer(),
 		pBlobPS->GetBufferSize(),
 		NULL,
 		&pPS
@@ -166,7 +167,7 @@ void Graphics::Clear(Colour colour)
 	pDeviceContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
 
-bool Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataFunction)
+void Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataFunction)
 {
 	pSpheres.push_back(dataFunction);
 }
@@ -175,14 +176,14 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 {
 	std::vector<Vertex> verticies =
 	{
-		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b},
-		{position.GetX() - radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b},
-		{position.GetX() + radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b},
-		{position.GetX() + radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b},
-		{position.GetX() + radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b},
-		{position.GetX() + radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b},
-		{position.GetX() - radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b},
-		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b},
+		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
 	};
 
 	std::vector<unsigned int> indicies =
@@ -200,7 +201,7 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 		7, 5, 3,
 		7, 3, 0
 	};
-	for (size_t i; i < indicies.size(); i++) 
+	for (size_t i = 0; i < indicies.size(); i++)
 	{
 		indicies[i] += offset; // add current offset in data to all indicies
 	}; 
@@ -213,7 +214,7 @@ void Graphics::Draw()
 	// retrieve vertex and index buffer data for the active spheres
 	std::vector<Vertex> VData;
 	std::vector<int> IData;
-	for (std::size_t i; i < pSpheres.size(); i++)
+	for (std::size_t i = 0; i < pSpheres.size(); i++)
 	{
 		auto data = pSpheres[i]();
 		if (std::get<0>(data) == 0.0f)
@@ -225,7 +226,7 @@ void Graphics::Draw()
 
 	// create the vertex buffer
 	D3D11_BUFFER_DESC VBufferDesc = {};
-	VBufferDesc.ByteWidth = VData.size();
+	VBufferDesc.ByteWidth = VData.size() * sizeof(Vertex);
 	VBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	VBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	VBufferDesc.CPUAccessFlags = 0u;
@@ -253,7 +254,7 @@ void Graphics::Draw()
 
 	// create the index buffer
 	D3D11_BUFFER_DESC IBufferDesc = {};
-	IBufferDesc.ByteWidth = IData.size();
+	IBufferDesc.ByteWidth = IData.size() * sizeof(int);
 	IBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	IBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	IBufferDesc.CPUAccessFlags = 0u;
@@ -279,18 +280,31 @@ void Graphics::Draw()
 	const D3D11_INPUT_ELEMENT_DESC iLayout[] =
 	{
 		{"Position", 0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u, 0u, D3D11_INPUT_PER_VERTEX_DATA, 0u},
-		{"Colour", 0u, DXGI_FORMAT_R8G8B8A8_UNORM, 0u, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0u}
+		{"Colour", 0u, DXGI_FORMAT_R32G32B32A32_FLOAT, 0u, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0u}
 	};
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
 	THROWHR(pDevice->CreateInputLayout(
 		iLayout,
 		std::size(iLayout),
-		pBlobVS.Get(),
+		pBlobVS->GetBufferPointer(),
 		pBlobVS->GetBufferSize(),
 		pLayout.GetAddressOf()
 	));
 	pDeviceContext->IASetInputLayout(pLayout.Get());
 
+	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// define the viewport
+	D3D11_VIEWPORT vp = {};
+	vp.TopLeftX = 0.0f;
+	vp.TopLeftY = 0.0f;
+	vp.Width = (float)mWidth;
+	vp.Height = (float)mHeight;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	pDeviceContext->RSSetViewports(1u, &vp);
+
+	pDeviceContext->DrawIndexed(IData.size(), 0u, 0);
 }
 
 void Graphics::EndFrame()

@@ -6,7 +6,7 @@
 struct Vertex 
 {
 	float x, y, z;
-	float r, g, b;
+	float r, g, b, a;
 };
 
 class Graphics
@@ -19,7 +19,7 @@ public:
 	void BindVertexShader(std::wstring filepath);
 	void BindPixelShader(std::wstring filepath);
 	void Clear(Colour colour); // clears the screen to the specified colour - resets rtv, dsv
-	bool AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataFunction); // adds a sphere location callback to the active drawable objects - returns true on success
+	void AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataFunction); // adds a sphere location callback to the active drawable objects - returns true on success
 	std::pair<std::vector<Vertex>, std::vector<unsigned int>> GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset); // returns vertex and index array for a sphere (starting with cubes for now)
 	void Draw(); 
 	void EndFrame();
