@@ -169,7 +169,7 @@ bool Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataF
 	pSpheres.push_back(dataFunction);
 }
 
-std::pair<std::vector<Vertex>, std::vector<int>> Graphics::GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset)
+std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset)
 {
 	std::vector<Vertex> verticies =
 	{
@@ -183,7 +183,7 @@ std::pair<std::vector<Vertex>, std::vector<int>> Graphics::GenerateSphere(float 
 		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b},
 	};
 
-	std::vector<int> indicies =
+	std::vector<unsigned int> indicies =
 	{
 		0, 2, 1,
 		0, 3, 2,
@@ -250,7 +250,29 @@ void Graphics::Draw()
 	);
 
 	// create the index buffer
-
+	D3D11_BUFFER_DESC IBufferDesc = {};
+	IBufferDesc.ByteWidth = IData.size();
+	IBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	IBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	IBufferDesc.CPUAccessFlags = 0u;
+	IBufferDesc.MiscFlags = 0u;
+	IBufferDesc.StructureByteStride = sizeof(unsigned int);
+	D3D11_SUBRESOURCE_DATA IBufferSR = {};
+	IBufferSR.pSysMem = IData.data();
+	IBufferSR.SysMemPitch = NULL;
+	IBufferSR.SysMemSlicePitch = NULL;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> IndexBuffer;
+	THROWHR(pDevice->CreateBuffer(
+		&IBufferDesc,
+		&IBufferSR,
+		&IndexBuffer
+	));
+	pDeviceContext->IASetIndexBuffer(
+		IndexBuffer.Get(),
+		DXGI_FORMAT_R32_UINT,
+		0u
+	);
+	
 	// define the input layout
 }
 
