@@ -31,5 +31,12 @@ private:
 
 	float starConcentration; // star intensity (0-1)
 	Vec3f cameraPos;
+
+	// com objects
+	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;
+	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pDeviceContext;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRTV;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDSV;
 };
 
