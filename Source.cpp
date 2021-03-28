@@ -45,7 +45,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	HWND hWnd = CreateWindowEx(NULL, L"N-Body-Class", L"N-Body Simulation", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE,
 		200, 200, clientArea.right-clientArea.left, clientArea.bottom-clientArea.top, NULL, NULL, hInstance, NULL);
 
-	Sphere s(4.0f, {0.0f, 0.0f, 5.0f});
+	Sphere s(0.5f, {0.0f, 0.0f, 2.0f});
 
 	gfx.Init(hWnd, WIDTH, HEIGHT);
 	gfx.BindVertexShader(L"G:\\Coding Projects\\n-body-cpp\\VertexShader.hlsl");

@@ -5,9 +5,10 @@
 #pragma comment (lib, "D3DCompiler.lib")
 
 #define THROWHR(hr) if(FAILED(hr)) {MessageBox(nullptr, (LPCWSTR)__LINE__, L"HR Error", MB_OK);}
+constexpr float pi = 3.141592654f;
 
 Graphics::Graphics()
-	: cameraPos(0.0f, 0.0f, 0.0f), starConcentration(0.5), mWidth(800), mHeight(600)
+	: starConcentration(0.5), mWidth(800), mHeight(600)
 {
 }
 
@@ -15,7 +16,7 @@ Graphics::~Graphics()
 {
 }
 
-void Graphics::Init(HWND hWnd, int width, int height)
+void Graphics::Init(HWND hWnd, float width, float height)
 {
 	HRESULT hr = 0;
 	mWidth = width;
@@ -174,6 +175,7 @@ void Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataF
 
 std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset)
 {
+	/* new verticies for non model matrix */
 	std::vector<Vertex> verticies =
 	{
 		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
@@ -186,11 +188,24 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
 	};
 
+	/* old verticies for use with mvp
+	std::vector<Vertex> verticies =
+	{
+		{-radius,  radius, -radius, colour.r, colour.g, colour.b, colour.a},
+		{-radius, -radius, -radius, colour.r, colour.g, colour.b, colour.a},
+		{ radius, -radius, -radius, colour.r, colour.g, colour.b, colour.a},
+		{ radius,  radius, -radius, colour.r, colour.g, colour.b, colour.a},
+		{ radius, -radius,  radius, colour.r, colour.g, colour.b, colour.a},
+		{ radius,  radius,  radius, colour.r, colour.g, colour.b, colour.a},
+		{-radius, -radius,  radius, colour.r, colour.g, colour.b, colour.a},
+		{-radius,  radius,  radius, colour.r, colour.g, colour.b, colour.a},
+	};*/
+
 	std::vector<unsigned int> indicies =
 	{
 		0, 2, 1,
 		0, 3, 2,
-		3, 4, 2,
+		/*3, 4, 2,
 		3, 5, 4,
 		5, 6, 4,
 		5, 7, 6,
@@ -199,7 +214,7 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 		6, 0, 2,
 		6, 2, 1,
 		7, 5, 3,
-		7, 3, 0
+		7, 3, 0*/
 	};
 	for (size_t i = 0; i < indicies.size(); i++)
 	{
@@ -275,6 +290,33 @@ void Graphics::Draw()
 		DXGI_FORMAT_R32_UINT,
 		0u
 	);
+
+	// create the constant buffer
+	ConstantBuffer CData =
+	{
+		{
+			DirectX::XMMatrixTranspose(
+				DirectX::XMMatrixPerspectiveFovLH(pi/2, mWidth/mHeight, 0.5f, 10.0f)
+			)
+		}
+	};
+	Microsoft::WRL::ComPtr<ID3D11Buffer> pConstantBuffer;
+	D3D11_BUFFER_DESC CBufferDesc;
+	CBufferDesc.ByteWidth = sizeof(CData);
+	CBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	CBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	CBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	CBufferDesc.MiscFlags = 0u;
+	CBufferDesc.StructureByteStride = 0u;
+	D3D11_SUBRESOURCE_DATA CBufferSR = {};
+	CBufferSR.pSysMem = &CData;
+	THROWHR(pDevice->CreateBuffer(
+		&CBufferDesc, 
+		&CBufferSR, 
+		&pConstantBuffer
+	));
+	// bind constant buffer
+	pDeviceContext->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf());
 	
 	// define the input layout
 	const D3D11_INPUT_ELEMENT_DESC iLayout[] =
@@ -320,14 +362,4 @@ float Graphics::GetStarConc()
 void Graphics::SetStarConc(float conc)
 {
 	starConcentration = std::max(0.0f, std::min(conc, 1.0f));
-}
-
-Vec3f Graphics::GetCameraPos()
-{
-	return cameraPos;
-}
-
-void Graphics::MoveCamera(Vec3f translation)
-{
-	cameraPos += translation;
 }

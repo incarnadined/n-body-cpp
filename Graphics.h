@@ -2,11 +2,17 @@
 #include "pch.h"
 
 #include "Vec3.h"
+#include "Camera.h"
 
 struct Vertex 
 {
 	float x, y, z;
 	float r, g, b, a;
+};
+
+struct ConstantBuffer
+{
+	DirectX::XMMATRIX transform;
 };
 
 class Graphics
@@ -15,7 +21,7 @@ public:
 	Graphics();
 	~Graphics();
 
-	void Init(HWND hWnd, int width, int height);
+	void Init(HWND hWnd, float width, float height);
 	void BindVertexShader(std::wstring filepath);
 	void BindPixelShader(std::wstring filepath);
 	void Clear(Colour colour); // clears the screen to the specified colour - resets rtv, dsv
@@ -27,8 +33,6 @@ public:
 	// Getters/Setters
 	float GetStarConc();
 	void SetStarConc(float conc);
-	Vec3f GetCameraPos();
-	void MoveCamera(Vec3f translation);
 
 private:
 	std::vector< // a vector containing pointers to the functions that can be called to get spherical data
@@ -37,9 +41,9 @@ private:
 		>> pSpheres;
 
 	float starConcentration; // star intensity (0-1)
-	Vec3f cameraPos;
-	int mWidth;
-	int mHeight;
+	float mWidth;
+	float mHeight;
+	Camera camera;
 
 	// com objects
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;
