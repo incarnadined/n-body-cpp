@@ -370,11 +370,6 @@ void Graphics::Translate(DirectX::XMVECTOR vec)
 	CameraPos = DirectX::XMVectorAdd(CameraPos, vec);
 }
 
-void Graphics::Rotate(DirectX::XMVECTOR vec)
-{
-	CameraDir = DirectX::XMVectorAdd(CameraDir, vec);
-}
-
 float Graphics::GetStarConc()
 {
 	return starConcentration;

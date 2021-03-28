@@ -32,7 +32,6 @@ public:
 
 	// camera
 	void Translate(DirectX::XMVECTOR vec);
-	void Rotate(DirectX::XMVECTOR vec);
 
 	// Getters/Setters
 	float GetStarConc();
