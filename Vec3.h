@@ -11,10 +11,14 @@ public:
 	float GetY();
 	float GetZ();
 
+	float magnitude();
+	Vec3f normalise();
+
 	// operator overloads
 	Vec3f operator+(int other);
 	Vec3f operator+(float other);
 	Vec3f operator+(Vec3f other);
+	Vec3f operator-();
 	Vec3f operator-(int other);
 	Vec3f operator-(float other);
 	Vec3f operator-(Vec3f other);
@@ -26,8 +30,10 @@ public:
 	Vec3f& operator-=(Vec3f other);
 	Vec3f operator*(int other);
 	Vec3f operator*(float other);
+	Vec3f operator*(double other);
 	Vec3f operator/(int other);
 	Vec3f operator/(float other);
+	Vec3f operator/(double other);
 	Vec3f& operator*=(int other);
 	Vec3f& operator*=(float other);
 	Vec3f& operator/=(int other);

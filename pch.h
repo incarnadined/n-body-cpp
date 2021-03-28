@@ -6,6 +6,8 @@
 #include <vector>
 #include <functional>
 #include <string>
+#include <cstdlib>
+#include <set>
 
 #include <windows.h>
 #include <d3d11.h>
@@ -36,3 +38,5 @@ inline constexpr unsigned char operator "" _uc(unsigned long long arg) noexcept
 {
 	return static_cast<unsigned char>(arg);
 }
+
+constexpr int G = 100;

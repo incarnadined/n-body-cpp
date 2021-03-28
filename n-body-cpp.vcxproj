@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Body.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="pch.h" />
@@ -154,6 +155,7 @@
     <ClInclude Include="Vec3.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Body.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="pch.cpp">

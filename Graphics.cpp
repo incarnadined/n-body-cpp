@@ -182,14 +182,14 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 	/* new verticies for non model matrix */
 	std::vector<Vertex> verticies =
 	{
-		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, 1-colour.g, 1-colour.b, colour.a},
-		{position.GetX() - radius, position.GetY() - radius, position.GetZ() - radius, 1-colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
 		{position.GetX() + radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() + radius, position.GetZ() - radius, 1-colour.r, 1-colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() - radius, position.GetZ() + radius, colour.r, 1-colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() + radius, position.GetZ() + radius, 1-colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() - radius, position.GetY() - radius, position.GetZ() + radius, colour.r, 1-colour.g, colour.b, colour.a},
-		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, 1-colour.r, colour.g, 1-colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
 	};
 
 	/* old verticies for use with mvp

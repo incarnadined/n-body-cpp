@@ -30,6 +30,16 @@ float Vec3f::GetZ()
 	return z;
 }
 
+float Vec3f::magnitude()
+{
+	return std::pow(pow(x, 2) + pow(y, 2) + pow(z, 2), 0.5);
+}
+
+Vec3f Vec3f::normalise()
+{
+	return Vec3f(x / magnitude(), y / magnitude(), z / magnitude());
+}
+
 Vec3f Vec3f::operator+(int other)
 {
 	return Vec3f(x + other, y + other, z + other);
@@ -43,6 +53,11 @@ Vec3f Vec3f::operator+(float other)
 Vec3f Vec3f::operator+(Vec3f other)
 {
 	return Vec3f(x + other.x, y + other.y, z + other.z);
+}
+
+Vec3f Vec3f::operator-()
+{
+	return Vec3f(-x, -y, -z);
 }
 
 Vec3f Vec3f::operator-(int other)
@@ -124,12 +139,22 @@ Vec3f Vec3f::operator*(float other)
 	return Vec3f(x * other, y * other, z * other);
 }
 
+Vec3f Vec3f::operator*(double other)
+{
+	return Vec3f((double)x * other, (double)y * other, (double)z * other);
+}
+
 Vec3f Vec3f::operator/(int other)
 {
 	return Vec3f(x / other, y / other, z / other);
 }
 
 Vec3f Vec3f::operator/(float other)
+{
+	return Vec3f(x / other, y / other, z / other);
+}
+
+Vec3f Vec3f::operator/(double other)
 {
 	return Vec3f(x / other, y / other, z / other);
 }
