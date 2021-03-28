@@ -14,6 +14,7 @@ Graphics::Graphics()
 
 Graphics::~Graphics()
 {
+	pSwapChain->SetFullscreenState(false, nullptr);
 }
 
 void Graphics::Init(HWND hWnd, float width, float height)
@@ -92,6 +93,9 @@ void Graphics::Init(HWND hWnd, float width, float height)
 
 	// Bind depth view
 	pDeviceContext->OMSetRenderTargets(1u, pRTV.GetAddressOf(), pDSV.Get());
+
+	// set default fullscreen true
+	pSwapChain->SetFullscreenState(true, nullptr);
 }
 
 void Graphics::BindVertexShader(std::wstring filepath)
@@ -303,7 +307,7 @@ void Graphics::Draw()
 				DirectX::XMMatrixPerspectiveFovLH(pi/2, mWidth/mHeight, 0.5f, 10.0f)
 			)*/
 			DirectX::XMMatrixTranspose(
-				view * DirectX::XMMatrixPerspectiveFovLH(pi / 2, mWidth / mHeight, 0.5f, 10.0f)
+				view * DirectX::XMMatrixPerspectiveFovLH(pi / 2, 16.0f / 9.0f, 0.5f, 10.0f)
 			)
 		}
 	};

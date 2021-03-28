@@ -13,6 +13,12 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
 {
 	switch (uMsg)
 	{
+	case WM_SETCURSOR:
+		SetCursor(NULL);
+		return true;
+	case WM_MOUSEMOVE:
+		SetCursorPos(WIDTH / 2, HEIGHT / 2);
+		break;
 	case WM_KEYDOWN:
 		switch (wp)
 		{
@@ -34,6 +40,9 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
 		case VK_SHIFT:
 			gfx.Translate(DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.0f));
 			break;
+		case VK_ESCAPE:
+			PostQuitMessage(0);
+			return 0;
 		}
 		break;
 	case WM_CLOSE:
