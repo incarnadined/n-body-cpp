@@ -30,6 +30,10 @@ public:
 	void Draw(); 
 	void EndFrame();
 
+	// camera
+	void Translate(DirectX::XMVECTOR vec);
+	void Rotate(DirectX::XMVECTOR vec);
+
 	// Getters/Setters
 	float GetStarConc();
 	void SetStarConc(float conc);
@@ -43,7 +47,11 @@ private:
 	float starConcentration; // star intensity (0-1)
 	float mWidth;
 	float mHeight;
-	Camera camera;
+	float count;
+
+	// camera
+	DirectX::XMVECTOR CameraPos;
+	DirectX::XMVECTOR CameraDir;
 
 	// com objects
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;

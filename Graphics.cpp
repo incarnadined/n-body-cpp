@@ -8,7 +8,7 @@
 constexpr float pi = 3.141592654f;
 
 Graphics::Graphics()
-	: starConcentration(0.5), mWidth(800), mHeight(600)
+	: starConcentration(0.5), mWidth(800), mHeight(600), count(0.0f), CameraPos(DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)), CameraDir(DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f))
 {
 }
 
@@ -72,8 +72,8 @@ void Graphics::Init(HWND hWnd, float width, float height)
 	// Generate depth texture
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthTexture;
 	D3D11_TEXTURE2D_DESC dt = {};
-	dt.Width = width;
-	dt.Height = height;
+	dt.Width = (UINT)width;
+	dt.Height = (UINT)height;
 	dt.MipLevels = 1u;
 	dt.ArraySize = 1u;
 	dt.Format = DXGI_FORMAT_D32_FLOAT;
@@ -178,14 +178,14 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 	/* new verticies for non model matrix */
 	std::vector<Vertex> verticies =
 	{
-		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() - radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, 1-colour.g, 1-colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() - radius, position.GetZ() - radius, 1-colour.r, colour.g, colour.b, colour.a},
 		{position.GetX() + radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() - radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() + radius, position.GetZ() - radius, 1-colour.r, 1-colour.g, colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() - radius, position.GetZ() + radius, colour.r, 1-colour.g, colour.b, colour.a},
+		{position.GetX() + radius, position.GetY() + radius, position.GetZ() + radius, 1-colour.r, colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() - radius, position.GetZ() + radius, colour.r, 1-colour.g, colour.b, colour.a},
+		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, 1-colour.r, colour.g, 1-colour.b, colour.a},
 	};
 
 	/* old verticies for use with mvp
@@ -205,7 +205,7 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 	{
 		0, 2, 1,
 		0, 3, 2,
-		/*3, 4, 2,
+		3, 4, 2,
 		3, 5, 4,
 		5, 6, 4,
 		5, 7, 6,
@@ -214,7 +214,7 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 		6, 0, 2,
 		6, 2, 1,
 		7, 5, 3,
-		7, 3, 0*/
+		7, 3, 0
 	};
 	for (size_t i = 0; i < indicies.size(); i++)
 	{
@@ -226,6 +226,7 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 
 void Graphics::Draw()
 {		
+	count += 0.01f;
 	// retrieve vertex and index buffer data for the active spheres
 	std::vector<Vertex> VData;
 	std::vector<int> IData;
@@ -292,11 +293,17 @@ void Graphics::Draw()
 	);
 
 	// create the constant buffer
+	DirectX::XMMATRIX view = DirectX::XMMatrixLookToLH(CameraPos, CameraDir, DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 	ConstantBuffer CData =
 	{
 		{
-			DirectX::XMMatrixTranspose(
+			/*DirectX::XMMatrixTranspose(
+				DirectX::XMMatrixRotationY(3*pi/2) *
+				DirectX::XMMatrixTranslation(0.0f, 0.0f, 1.0f) *
 				DirectX::XMMatrixPerspectiveFovLH(pi/2, mWidth/mHeight, 0.5f, 10.0f)
+			)*/
+			DirectX::XMMatrixTranspose(
+				view * DirectX::XMMatrixPerspectiveFovLH(pi / 2, mWidth / mHeight, 0.5f, 10.0f)
 			)
 		}
 	};
@@ -352,6 +359,16 @@ void Graphics::Draw()
 void Graphics::EndFrame()
 {
 	pSwapChain->Present(1u, 0u);
+}
+
+void Graphics::Translate(DirectX::XMVECTOR vec)
+{
+	CameraPos = DirectX::XMVectorAdd(CameraPos, vec);
+}
+
+void Graphics::Rotate(DirectX::XMVECTOR vec)
+{
+	CameraDir = DirectX::XMVectorAdd(CameraDir, vec);
 }
 
 float Graphics::GetStarConc()

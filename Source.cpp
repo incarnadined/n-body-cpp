@@ -7,10 +7,35 @@
 #define WIDTH 800
 #define HEIGHT 600
 
+Graphics gfx;
+
 LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
 {
 	switch (uMsg)
 	{
+	case WM_KEYDOWN:
+		switch (wp)
+		{
+		case 'W':
+			gfx.Translate(DirectX::XMVectorSet(0.0f, 0.0f, 0.1f, 0.0f));
+			break;
+		case 'S':
+			gfx.Translate(DirectX::XMVectorSet(0.0f, 0.0f, -0.1f, 0.0f));
+			break;
+		case 'A':
+			gfx.Translate(DirectX::XMVectorSet(-0.1f, 0.0f, 0.0f, 0.0f));
+			break;
+		case 'D':
+			gfx.Translate(DirectX::XMVectorSet(0.1f, 0.0f, 0.0f, 0.0f));
+			break;
+		case VK_SPACE:
+			gfx.Translate(DirectX::XMVectorSet(0.0f, 0.1f, 0.0f, 0.0f));
+			break;
+		case VK_SHIFT:
+			gfx.Translate(DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.0f));
+			break;
+		}
+		break;
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
@@ -20,8 +45,6 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	Graphics gfx;
-
 	WNDCLASSEX wc;
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -45,7 +68,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	HWND hWnd = CreateWindowEx(NULL, L"N-Body-Class", L"N-Body Simulation", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE,
 		200, 200, clientArea.right-clientArea.left, clientArea.bottom-clientArea.top, NULL, NULL, hInstance, NULL);
 
-	Sphere s(0.5f, {0.0f, 0.0f, 2.0f});
+	Sphere s(0.5f, {0.0f, 0.0f, 3.0f});
 
 	gfx.Init(hWnd, WIDTH, HEIGHT);
 	gfx.BindVertexShader(L"G:\\Coding Projects\\n-body-cpp\\VertexShader.hlsl");

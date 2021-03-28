@@ -2,7 +2,7 @@
 #include "Sphere.h"
 
 Sphere::Sphere(float radius, Vec3f position)
-	: mRadius(radius), mPosition(position), mColour(1.0f, 1.0f, 0.0f), mVoid(false)
+	: mRadius(radius), mPosition(position), mColour(1.0f, 0, 0), mVoid(false)
 {
 }
 
