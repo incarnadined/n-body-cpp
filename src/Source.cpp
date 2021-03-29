@@ -92,7 +92,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	std::vector<Body> bodies;
 	bodies.push_back(Body(10, 0.15, { 1.7f, 0.4, 0.2 }, { 0.0f, 1.0f, 0.0f }));
-	bodies.push_back(Body(50, 0.35, { -1.8f, -0.4, 0.8 }, { 1.0f, 0.0f, 0.0f }));
+	//bodies.push_back(Body(50, 0.35, { -1.8f, -0.4, 0.8 }, { 1.0f, 0.0f, 0.0f }));
 	for (size_t i = 0; i < bodies.size(); i++)
 	{
 		gfx.AddSphere(std::bind(&Body::GetData, &bodies[i]));
@@ -148,6 +148,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				ImGui::BulletText("Pos X: %f", bodies[i].GetPosition().GetX());
 				ImGui::BulletText("Pos Y: %f", bodies[i].GetPosition().GetY());
 				ImGui::BulletText("Pos Z: %f", bodies[i].GetPosition().GetZ());
+				if (ImGui::Button("Snap"))
+				{
+					gfx.SetCamera(bodies[i].GetPosition());
+				}
 				ImGui::Separator();
 			}
 		}

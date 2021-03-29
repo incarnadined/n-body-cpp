@@ -8,7 +8,7 @@
 constexpr float pi = 3.141592654f;
 
 Graphics::Graphics()
-	: starConcentration(0.5), mWidth(800), mHeight(600), count(0.0f), CameraPos(0.0f, 0.0f, -1.0f), CameraDir(0.0f, 0.0f, 1.0f)
+	: starConcentration(0.5), mWidth(800), mHeight(600), CameraPos(0.0f, 0.0f, -1.0f), CameraDir(0.0f, 0.0f, 1.0f), mDepth(1)
 {
 }
 
@@ -96,7 +96,7 @@ void Graphics::Init(HWND hWnd, float width, float height)
 	pDeviceContext->OMSetRenderTargets(1u, pRTV.GetAddressOf(), pDSV.Get());
 
 	// set default fullscreen true
-	pSwapChain->SetFullscreenState(true, nullptr);
+	//pSwapChain->SetFullscreenState(true, nullptr);
 
 	// init imgui
 	IMGUI_CHECKVERSION();
@@ -184,9 +184,31 @@ void Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataF
 	pSpheres.push_back(dataFunction);
 }
 
+void Graphics::SubdivideIcosahedron(Vec3f v1, Vec3f v2, Vec3f v3, Colour colour, std::vector<Vertex>& verticies, std::vector<unsigned int>& indicies)
+{
+	Vec3f v12, v23, v31;
+
+	if (mDepth == 0) {
+		indicies.push_back(verticies.size());
+		verticies.push_back({ v1, colour });
+		indicies.push_back(verticies.size());
+		verticies.push_back({ v2, colour });
+		indicies.push_back(verticies.size());
+		verticies.push_back({ v3, colour });
+		return;
+	}
+	v12 = (v1 + v2).normalise();
+	v23 = (v2 + v3).normalise();
+	v31 = (v3 + v1).normalise();
+	SubdivideIcosahedron(v1,  v12, v31, colour, verticies, indicies);
+	SubdivideIcosahedron(v2,  v23, v12, colour, verticies, indicies);
+	SubdivideIcosahedron(v3,  v31, v23, colour, verticies, indicies);
+	SubdivideIcosahedron(v12, v23, v31, colour, verticies, indicies);
+}
+
 std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset)
 {
-	/* new verticies for non model matrix */
+	/* old code for generating cubes of roughly the right dimensions
 	std::vector<Vertex> verticies =
 	{
 		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
@@ -198,19 +220,6 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 		{position.GetX() - radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
 		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
 	};
-
-	/* old verticies for use with mvp
-	std::vector<Vertex> verticies =
-	{
-		{-radius,  radius, -radius, colour.r, colour.g, colour.b, colour.a},
-		{-radius, -radius, -radius, colour.r, colour.g, colour.b, colour.a},
-		{ radius, -radius, -radius, colour.r, colour.g, colour.b, colour.a},
-		{ radius,  radius, -radius, colour.r, colour.g, colour.b, colour.a},
-		{ radius, -radius,  radius, colour.r, colour.g, colour.b, colour.a},
-		{ radius,  radius,  radius, colour.r, colour.g, colour.b, colour.a},
-		{-radius, -radius,  radius, colour.r, colour.g, colour.b, colour.a},
-		{-radius,  radius,  radius, colour.r, colour.g, colour.b, colour.a},
-	};*/
 
 	std::vector<unsigned int> indicies =
 	{
@@ -226,18 +235,51 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 		6, 2, 1,
 		7, 5, 3,
 		7, 3, 0
+	};*/
+
+	// generate icosahedron
+	float X = 0.525731112119133606f;
+	float Z = 0.850650808352039932f;
+	float N = 0.0f;
+
+	std::vector<Vertex> verticies = 
+	{ 
+		{ -X, N, Z, colour }, {  X, N, Z, colour }, { -X, N,-Z, colour }, {  X, N,-Z, colour },
+		{  N, Z, X, colour }, {  N, Z,-X, colour }, {  N,-Z, X, colour }, {  N,-Z,-X, colour },
+		{  Z, X, N, colour }, { -Z, X, N, colour }, {  Z,-X, N, colour }, { -Z,-X, N, colour } 
 	};
+
+	std::vector<unsigned int> indicies = 
+	{
+		0, 4, 1,   0, 9, 4,   9, 5,  4,  4,  5, 8,  4, 8, 1,
+		8, 10, 1,  8, 3, 10,  5, 3,  8,  5,  2, 3,  2, 7, 3,
+		7, 10, 3,  7, 6, 10,  7, 11, 6,  11, 0, 6,  0, 1, 6,
+		6, 1, 10,  9, 0, 11,  9, 11, 2,  9,  2, 5,  7, 2, 11
+	};
+
+	/* subdivide icosahedron
+	for (size_t i = 0; i < verticies.size() / 3; i++)
+	{
+		SubdivideIcosahedron(
+			Vec3f(verticies[i].x,   verticies[i].y,   verticies[i].z),
+			Vec3f(verticies[i+1].x, verticies[i+1].y, verticies[i+1].z),
+			Vec3f(verticies[i+2].x, verticies[i+2].y, verticies[i+2].z),
+			colour,
+			verticies,
+			indicies
+			);
+	}*/
+
 	for (size_t i = 0; i < indicies.size(); i++)
 	{
 		indicies[i] += offset; // add current offset in data to all indicies
-	}; 
+	};
 
 	return std::make_pair(verticies, indicies);
 }
 
 void Graphics::Draw()
-{		
-	count += 0.01f;
+{
 	// retrieve vertex and index buffer data for the active spheres
 	std::vector<Vertex> VData;
 	std::vector<int> IData;
@@ -308,11 +350,6 @@ void Graphics::Draw()
 	ConstantBuffer CData =
 	{
 		{
-			/*DirectX::XMMatrixTranspose(
-				DirectX::XMMatrixRotationY(3*pi/2) *
-				DirectX::XMMatrixTranslation(0.0f, 0.0f, 1.0f) *
-				DirectX::XMMatrixPerspectiveFovLH(pi/2, mWidth/mHeight, 0.5f, 10.0f)
-			)*/
 			DirectX::XMMatrixTranspose(
 				view * DirectX::XMMatrixPerspectiveFovLH(pi / 2, 16.0f / 9.0f, 0.5f, 10.0f)
 			)
@@ -375,6 +412,11 @@ void Graphics::EndFrame()
 void Graphics::Translate(Vec3f vec)
 {
 	CameraPos += vec;
+}
+
+void Graphics::SetCamera(Vec3f vec)
+{
+	CameraPos = vec;
 }
 
 float Graphics::GetStarConc()
