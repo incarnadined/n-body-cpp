@@ -8,7 +8,7 @@
 constexpr float pi = 3.141592654f;
 
 Graphics::Graphics()
-	: starConcentration(0.5), mWidth(800), mHeight(600), count(0.0f), CameraPos(DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)), CameraDir(DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f))
+	: starConcentration(0.5), mWidth(800), mHeight(600), count(0.0f), CameraPos(0.0f, 0.0f, -1.0f), CameraDir(0.0f, 0.0f, 1.0f)
 {
 }
 
@@ -304,7 +304,7 @@ void Graphics::Draw()
 	);
 
 	// create the constant buffer
-	DirectX::XMMATRIX view = DirectX::XMMatrixLookToLH(CameraPos, CameraDir, DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+	DirectX::XMMATRIX view = DirectX::XMMatrixLookToLH(CameraPos.DX(1.0f), CameraDir.DX(0.0f), DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 	ConstantBuffer CData =
 	{
 		{
@@ -372,9 +372,9 @@ void Graphics::EndFrame()
 	pSwapChain->Present(1u, 0u);
 }
 
-void Graphics::Translate(DirectX::XMVECTOR vec)
+void Graphics::Translate(Vec3f vec)
 {
-	CameraPos = DirectX::XMVectorAdd(CameraPos, vec);
+	CameraPos += vec;
 }
 
 float Graphics::GetStarConc()

@@ -13,6 +13,7 @@ public:
 
 	float magnitude();
 	Vec3f normalise();
+	DirectX::XMVECTOR DX(float w);
 
 	// operator overloads
 	Vec3f operator+(int other);

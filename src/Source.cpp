@@ -9,7 +9,6 @@
 
 Graphics gfx;
 bool paused = true;
-bool show_demo_window = true;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
@@ -29,25 +28,25 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
 		switch (wp)
 		{
 		case 'W':
-			gfx.Translate(DirectX::XMVectorSet(0.0f, 0.0f, 0.01f, 0.0f));
+			gfx.Translate({ 0.0f, 0.0f, 0.01f });
 			break;
 		case 'S':
-			gfx.Translate(DirectX::XMVectorSet(0.0f, 0.0f, -0.01f, 0.0f));
+			gfx.Translate({ 0.0f, 0.0f, -0.01f });
 			break;
 		case 'A':
-			gfx.Translate(DirectX::XMVectorSet(-0.01f, 0.0f, 0.0f, 0.0f));
+			gfx.Translate({ -0.01f, 0.0f, 0.0f });
 			break;
 		case 'D':
-			gfx.Translate(DirectX::XMVectorSet(0.01f, 0.0f, 0.0f, 0.0f));
+			gfx.Translate({ 0.01f, 0.0f, 0.0f });
+			break;
+		case VK_SPACE:
+			gfx.Translate({ 0.0f, 0.01f, 0.0f });
+			break;
+		case VK_SHIFT:
+			gfx.Translate({ 0.0f, -0.01f, 0.0f });
 			break;
 		case 'P':
 			paused = paused == true ? false : true;
-			break;
-		case VK_SPACE:
-			gfx.Translate(DirectX::XMVectorSet(0.0f, 0.01f, 0.0f, 0.0f));
-			break;
-		case VK_SHIFT:
-			gfx.Translate(DirectX::XMVectorSet(0.0f, -0.01f, 0.0f, 0.0f));
 			break;
 		case VK_ESCAPE:
 			PostQuitMessage(0);
@@ -92,8 +91,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ImGui_ImplWin32_Init(hWnd);
 
 	std::vector<Body> bodies;
-	bodies.push_back(Body(1000, 0.15, { 0.5f, 0.4, 0.2 }, { 0.0f, 1.0f, 0.0f }));
-	bodies.push_back(Body(5000, 0.35, { -0.2f, -0.4, 0.8 }, { 1.0f, 0.0f, 0.0f }));
+	bodies.push_back(Body(10, 0.15, { 1.7f, 0.4, 0.2 }, { 0.0f, 1.0f, 0.0f }));
+	bodies.push_back(Body(50, 0.35, { -1.8f, -0.4, 0.8 }, { 1.0f, 0.0f, 0.0f }));
 	for (size_t i = 0; i < bodies.size(); i++)
 	{
 		gfx.AddSphere(std::bind(&Body::GetData, &bodies[i]));
@@ -104,11 +103,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	{
 		for (size_t j = 0; j < bodies.size(); j++)
 		{
-			combinations.insert(std::pair<Body&, Body&>(bodies[i], bodies[j]));
+			if (i < j) // avoid generating permutations
+				combinations.insert(std::pair<Body&, Body&>(bodies[i], bodies[j]));
 		}
 	}
 
-	float dt = 0.0001f;
+	float dt = 0.001f;
 	MSG msg;
 	while (true)
 	{
@@ -139,10 +139,34 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		if (show_demo_window)
+		ImGui::Checkbox("Paused", &paused);
+		if (ImGui::CollapsingHeader("Bodies"))
 		{
-			ImGui::ShowDemoWindow(&show_demo_window);
+			for (size_t i = 0; i < bodies.size(); i++)
+			{
+				ImGui::Text("Body %i", i);
+				ImGui::BulletText("Pos X: %f", bodies[i].GetPosition().GetX());
+				ImGui::BulletText("Pos Y: %f", bodies[i].GetPosition().GetY());
+				ImGui::BulletText("Pos Z: %f", bodies[i].GetPosition().GetZ());
+				ImGui::Separator();
+			}
 		}
+		if (ImGui::CollapsingHeader("Camera"))
+		{
+			ImGui::BulletText("Pos X: %f", gfx.CameraPos.GetX());
+			ImGui::BulletText("Pos Y: %f", gfx.CameraPos.GetY());
+			ImGui::BulletText("Pos Z: %f", gfx.CameraPos.GetZ());
+		}
+		ImGui::SliderFloat("Timestep", &dt, 0.001, 1);
+		if (ImGui::Button("Step"))
+		{
+			for (auto itr = combinations.begin(); itr != combinations.end(); itr++)
+			{ // for each combination of bodies, apply the force	
+				std::pair<Body&, Body&> pair = *itr;
+				pair.first.ApplyForce(pair.second, dt);
+			}
+		}
+
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 

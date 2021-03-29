@@ -40,6 +40,12 @@ Vec3f Vec3f::normalise()
 	return Vec3f(x / magnitude(), y / magnitude(), z / magnitude());
 }
 
+DirectX::XMVECTOR Vec3f::DX(float w)
+{
+	// returns an XMVECTOR of the current vector
+	return DirectX::XMVectorSet(x, y, z, w);
+}
+
 Vec3f Vec3f::operator+(int other)
 {
 	return Vec3f(x + other, y + other, z + other);

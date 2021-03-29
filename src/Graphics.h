@@ -31,7 +31,9 @@ public:
 	void EndFrame();
 
 	// camera
-	void Translate(DirectX::XMVECTOR vec);
+	void Translate(Vec3f vec);
+	Vec3f CameraPos;
+	Vec3f CameraDir;
 
 	// Getters/Setters
 	float GetStarConc();
@@ -47,10 +49,6 @@ private:
 	float mWidth;
 	float mHeight;
 	float count;
-
-	// camera
-	DirectX::XMVECTOR CameraPos;
-	DirectX::XMVECTOR CameraDir;
 
 	// com objects
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;
