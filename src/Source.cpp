@@ -162,6 +162,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			ImGui::BulletText("Pos Z: %f", gfx.CameraPos.GetZ());
 		}
 		ImGui::SliderFloat("Timestep", &dt, 0.001, 1);
+		ImGui::SliderInt("Subdivisions", &gfx.mDepth, 0, 10);
 		if (ImGui::Button("Step"))
 		{
 			for (auto itr = combinations.begin(); itr != combinations.end(); itr++)

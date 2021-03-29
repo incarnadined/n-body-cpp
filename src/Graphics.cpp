@@ -8,7 +8,7 @@
 constexpr float pi = 3.141592654f;
 
 Graphics::Graphics()
-	: starConcentration(0.5), mWidth(800), mHeight(600), CameraPos(0.0f, 0.0f, -1.0f), CameraDir(0.0f, 0.0f, 1.0f), mDepth(1)
+	: starConcentration(0.5), mWidth(800), mHeight(600), CameraPos(0.0f, 0.0f, -1.0f), CameraDir(0.0f, 0.0f, 1.0f), mDepth(0)
 {
 }
 
@@ -184,26 +184,39 @@ void Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataF
 	pSpheres.push_back(dataFunction);
 }
 
-void Graphics::SubdivideIcosahedron(Vec3f v1, Vec3f v2, Vec3f v3, Colour colour, std::vector<Vertex>& verticies, std::vector<unsigned int>& indicies)
+std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::SubdivideIcosahedron(std::vector<Vertex> verticies, std::vector<unsigned int> indicies, int depth)
 {
-	Vec3f v12, v23, v31;
-
-	if (mDepth == 0) {
-		indicies.push_back(verticies.size());
-		verticies.push_back({ v1, colour });
-		indicies.push_back(verticies.size());
-		verticies.push_back({ v2, colour });
-		indicies.push_back(verticies.size());
-		verticies.push_back({ v3, colour });
-		return;
+	if (depth == 0)
+	{
+		return std::make_pair(verticies, indicies);
 	}
-	v12 = (v1 + v2).normalise();
-	v23 = (v2 + v3).normalise();
-	v31 = (v3 + v1).normalise();
-	SubdivideIcosahedron(v1,  v12, v31, colour, verticies, indicies);
-	SubdivideIcosahedron(v2,  v23, v12, colour, verticies, indicies);
-	SubdivideIcosahedron(v3,  v31, v23, colour, verticies, indicies);
-	SubdivideIcosahedron(v12, v23, v31, colour, verticies, indicies);
+
+	std::vector<Vertex> newVerticies;
+	std::vector<unsigned int> newIndicies;
+	for (size_t i = 0; i < indicies.size() / 3; i++)
+	{
+		newVerticies.push_back((verticies[indicies[i]] + verticies[indicies[i + 1]]) / 2);
+		newVerticies.push_back((verticies[indicies[i + 1]] + verticies[indicies[i + 2]]) / 2);
+		newVerticies.push_back((verticies[indicies[i]] + verticies[indicies[i + 2]]) / 2);
+
+		newIndicies.push_back(indicies[i]);
+		newIndicies.push_back(newVerticies.size() - 3);
+		newIndicies.push_back(newVerticies.size() - 1);
+
+		newIndicies.push_back(indicies[i + 1]);
+		newIndicies.push_back(newVerticies.size() - 2);
+		newIndicies.push_back(newVerticies.size() - 3);
+
+		newIndicies.push_back(indicies[i + 2]);
+		newIndicies.push_back(newVerticies.size() - 1);
+		newIndicies.push_back(newVerticies.size() - 2);
+
+		newIndicies.push_back(newVerticies.size() - 3);
+		newIndicies.push_back(newVerticies.size() - 2);
+		newIndicies.push_back(newVerticies.size() - 1);
+	}
+
+	return SubdivideIcosahedron(newVerticies, newIndicies, depth - 1);
 }
 
 std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset)
@@ -242,11 +255,11 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 	float Z = 0.850650808352039932f;
 	float N = 0.0f;
 
-	std::vector<Vertex> verticies = 
-	{ 
-		{ -X, N, Z, colour }, {  X, N, Z, colour }, { -X, N,-Z, colour }, {  X, N,-Z, colour },
-		{  N, Z, X, colour }, {  N, Z,-X, colour }, {  N,-Z, X, colour }, {  N,-Z,-X, colour },
-		{  Z, X, N, colour }, { -Z, X, N, colour }, {  Z,-X, N, colour }, { -Z,-X, N, colour } 
+	std::vector<Vertex> verticies =
+	{
+		{ -X, N, Z, 1 - colour.r, colour.g, colour.b, colour.a }, {  X, N, Z, 1 - colour.r, 1 - colour.g, colour.b, colour.a  }, { -X, N,-Z, 1 - colour.r, colour.g, colour.b, colour.a  }, {  X, N,-Z, colour.r, colour.g, colour.b, colour.a  },
+		{  N, Z, X, colour.r, 1 - colour.g, colour.b, colour.a }, {  N, Z,-X, colour.r, 1 - colour.g, 1 - colour.b, colour.a  }, {  N,-Z, X, colour.r, colour.g, colour.b, colour.a  }, {  N,-Z,-X, colour.r, 1 - colour.g, colour.b, colour.a  },
+		{  Z, X, N, colour.r, colour.g, 1 - colour.b, colour.a }, { -Z, X, N, 1 - colour.r, colour.g, 1 - colour.b, colour.a  }, {  Z,-X, N, colour.r, colour.g, 1 - colour.b, colour.a  }, { -Z,-X, N, colour.r, colour.g, colour.b, colour.a  }
 	};
 
 	std::vector<unsigned int> indicies = 
@@ -257,25 +270,15 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 		6, 1, 10,  9, 0, 11,  9, 11, 2,  9,  2, 5,  7, 2, 11
 	};
 
-	/* subdivide icosahedron
-	for (size_t i = 0; i < verticies.size() / 3; i++)
-	{
-		SubdivideIcosahedron(
-			Vec3f(verticies[i].x,   verticies[i].y,   verticies[i].z),
-			Vec3f(verticies[i+1].x, verticies[i+1].y, verticies[i+1].z),
-			Vec3f(verticies[i+2].x, verticies[i+2].y, verticies[i+2].z),
-			colour,
-			verticies,
-			indicies
-			);
-	}*/
+	// subdivide icosahedron
+	auto ret = SubdivideIcosahedron(verticies, indicies, mDepth);
 
-	for (size_t i = 0; i < indicies.size(); i++)
+	for (size_t i = 0; i < ret.second.size(); i++)
 	{
-		indicies[i] += offset; // add current offset in data to all indicies
+		ret.second[i] += offset; // add current offset in data to all indicies
 	};
 
-	return std::make_pair(verticies, indicies);
+	return ret;
 }
 
 void Graphics::Draw()
