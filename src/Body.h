@@ -16,10 +16,9 @@ public:
 	float GetRadius();
 	Vec3f GetPosition();
 
-	void CalculateForce(Body& other, float dt);
+	void ApplyForce(Body& other, float dt); // applies a force and calls the second overload for the other body with the precalculated force
 	void ApplyForce(Vec3f force, float dt);
 
-	// i dont know why i need this
 	bool operator<(Body other) { return mMass < other.GetMass(); }
 
 private:

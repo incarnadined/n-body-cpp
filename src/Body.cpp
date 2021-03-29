@@ -35,7 +35,7 @@ Vec3f Body::GetPosition()
 	return mPosition;
 }
 
-void Body::CalculateForce(Body& other, float dt)
+void Body::ApplyForce(Body& other, float dt)
 {
 	double force_mag = (G * mMass * other.GetMass()) / std::pow((mPosition - other.GetPosition()).magnitude(), 2);
 	Vec3f direction = (mPosition - other.GetPosition()).normalise();
