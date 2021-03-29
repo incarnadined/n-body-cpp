@@ -15,6 +15,10 @@
 #include <directxmath.h>
 #include <wrl.h>
 
+#include "imgui/imgui.h"
+#include "imgui/backends/imgui_impl_win32.h"
+#include "imgui/backends/imgui_impl_dx11.h"
+
 
 /// Custom structs
 struct Colour 

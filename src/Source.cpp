@@ -4,14 +4,22 @@
 #include "Graphics.h"
 #include "Body.h"
 
-#define WIDTH 800
-#define HEIGHT 600
+#define WIDTH 1920
+#define HEIGHT 1080
 
 Graphics gfx;
 bool paused = true;
+bool show_demo_window = true;
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
 {
+	// give the msg to imgui first
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wp, lp))
+	{
+		return true;
+	}
+
 	switch (uMsg)
 	{
 	case WM_SETCURSOR:
@@ -79,8 +87,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		200, 200, clientArea.right-clientArea.left, clientArea.bottom-clientArea.top, NULL, NULL, hInstance, NULL);
 
 	gfx.Init(hWnd, WIDTH, HEIGHT);
-	gfx.BindVertexShader(L"G:\\Coding Projects\\n-body-cpp\\VertexShader.hlsl");
-	gfx.BindPixelShader(L"G:\\Coding Projects\\n-body-cpp\\PixelShader.hlsl");
+	gfx.BindVertexShader(L"G:\\Coding Projects\\n-body-cpp\\src\\VertexShader.hlsl");
+	gfx.BindPixelShader(L"G:\\Coding Projects\\n-body-cpp\\src\\PixelShader.hlsl");
+	ImGui_ImplWin32_Init(hWnd);
 
 	std::vector<Body> bodies;
 	bodies.push_back(Body(1000, 0.15, { 0.5f, 0.4, 0.2 }, { 0.0f, 1.0f, 0.0f }));
@@ -99,6 +108,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 	}
 
+	float dt = 0.0001f;
 	MSG msg;
 	while (true)
 	{
@@ -117,12 +127,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		if (!paused)
 		{
 			for (auto itr = combinations.begin(); itr != combinations.end(); itr++)
-			{
+			{ // for each combination of bodies, apply the force	
 				std::pair<Body&, Body&> pair = *itr;
-				pair.first.CalculateForce(pair.second, 0.0001f);
+				pair.first.ApplyForce(pair.second, dt);
 			}
 		}
 		gfx.Draw();
+
+		// render imgui
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+
+		if (show_demo_window)
+		{
+			ImGui::ShowDemoWindow(&show_demo_window);
+		}
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
 		gfx.EndFrame();
 	}
+
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
 }

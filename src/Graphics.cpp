@@ -14,6 +14,7 @@ Graphics::Graphics()
 
 Graphics::~Graphics()
 {
+	ImGui_ImplDX11_Shutdown();
 	pSwapChain->SetFullscreenState(false, nullptr);
 }
 
@@ -96,6 +97,12 @@ void Graphics::Init(HWND hWnd, float width, float height)
 
 	// set default fullscreen true
 	pSwapChain->SetFullscreenState(true, nullptr);
+
+	// init imgui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
+	ImGui_ImplDX11_Init(pDevice.Get(), pDeviceContext.Get());
 }
 
 void Graphics::BindVertexShader(std::wstring filepath)
