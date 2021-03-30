@@ -9,8 +9,8 @@ struct Vertex
 	Vertex(float x, float y, float z, float colourID) : x(x), y(y), z(z), colourID(colourID) {}
 	Vertex(Vec3f pos, float colourID) : x(pos.GetX()), y(pos.GetY()), z(pos.GetZ()), colourID(colourID) {}
 	Vertex operator+(Vertex other) { return Vertex(x + other.x, y + other.y, z + other.z, colourID); }
-	Vertex& operator+=(Vec3f other) { x + other.GetX(); y + other.GetY(); z + other.GetZ(); return *this;  }
-	Vertex& operator*=(float other) { x * other; y * other; z * other; return *this; }
+	Vertex operator+(Vec3f other) { return Vertex(x + other.GetX(), y + other.GetY(), z + other.GetZ(), colourID); }
+	Vertex operator*(float other) { return Vertex(x * other, y * other, z * other, colourID); }
 	Vertex operator/(int other) { return Vertex(x / other, y / other, z / other, colourID); }
 	float magnitude() { return (float)std::pow(x * x + y * y + z * z, 0.5); }
 	Vertex normalise() { return Vertex(x /= magnitude(), y /= magnitude(), z /= magnitude(), colourID); }

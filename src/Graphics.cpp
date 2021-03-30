@@ -276,8 +276,8 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 	// apply translation and scale to verticies
 	for (size_t i = 0; i < ret.first.size(); i++)
 	{
-		ret.first[i] *= radius;
-		ret.first[i] += position;
+		ret.first[i] = ret.first[i] * radius;
+		ret.first[i] = ret.first[i] + position;
 	}
 	// add current offset in data to all indicies and convert to pure uint list
 	std::vector<unsigned int> ind;

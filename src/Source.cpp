@@ -3,6 +3,7 @@
 #include "Vec3.h"
 #include "Graphics.h"
 #include "Body.h"
+#include "resource.h"
 
 #define WIDTH 1920
 #define HEIGHT 1080
@@ -68,11 +69,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wc.style = CS_OWNDC;
 	wc.lpfnWndProc = WinProc;
 	wc.hInstance = hInstance;
-	wc.hIcon = LoadIcon(NULL, IDI_QUESTION);
+	wc.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 32, 32, NULL);
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = NULL;
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = L"N-Body-Class";
+	wc.hIconSm = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, 16, 16, NULL);
 
 	RegisterClassEx(&wc);
 
