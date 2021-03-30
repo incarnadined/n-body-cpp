@@ -11,9 +11,18 @@ struct Vertex
 	Vertex(float x, float y, float z, Colour colour) : x(x), y(y), z(z), r(colour.r), g(colour.g), b(colour.b), a(colour.a) {}
 	Vertex(Vec3f pos, Colour colour) : x(pos.GetX()), y(pos.GetY()), z(pos.GetZ()), r(colour.r), g(colour.g), b(colour.b), a(colour.a) {}
 	Vertex operator+(Vertex other) { return Vertex(x + other.x, y + other.y, z + other.z, r, g, b, a); }
+	Vertex& operator+=(Vec3f other) { x + other.GetX(); y + other.GetY(); z + other.GetZ(); return *this;  }
+	Vertex& operator*=(float other) { x * other; y * other; z * other; return *this; }
 	Vertex operator/(int other) { return Vertex(x / other, y / other, z / other, r, g, b, a); }
+	float magnitude() { return (float)std::pow(x * x + y * y + z * z, 0.5); }
+	Vertex normalise() { return Vertex(x /= magnitude(), y /= magnitude(), z /= magnitude(), r, g, b, a); }
 	float x, y, z; 
 	float r, g, b, a;
+};
+
+struct Triangle
+{
+	unsigned int a, b, c;
 };
 
 struct ConstantBuffer
@@ -32,7 +41,7 @@ public:
 	void BindPixelShader(std::wstring filepath);
 	void Clear(Colour colour); // clears the screen to the specified colour - resets rtv, dsv
 	void AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataFunction); // adds a sphere location callback to the active drawable objects - returns true on success
-	std::pair<std::vector<Vertex>, std::vector<unsigned int>> SubdivideIcosahedron(std::vector<Vertex> verticies, std::vector<unsigned int> indicies, int depth);
+	std::pair<std::vector<Vertex>, std::vector<Triangle>> SubdivideIcosahedron(std::vector<Vertex> verticies, std::vector<Triangle> indicies, int depth);
 	std::pair<std::vector<Vertex>, std::vector<unsigned int>> GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset); // returns vertex and index array for a sphere (starting with cubes for now)
 	void Draw(); 
 	void EndFrame();

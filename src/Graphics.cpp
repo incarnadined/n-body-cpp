@@ -8,7 +8,7 @@
 constexpr float pi = 3.141592654f;
 
 Graphics::Graphics()
-	: starConcentration(0.5), mWidth(800), mHeight(600), CameraPos(0.0f, 0.0f, -1.0f), CameraDir(0.0f, 0.0f, 1.0f), mDepth(0)
+	: starConcentration(0.5), mWidth(800), mHeight(600), CameraPos(0.0f, 0.0f, -1.0f), CameraDir(0.0f, 0.0f, 1.0f), mDepth(4)
 {
 }
 
@@ -184,20 +184,36 @@ void Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataF
 	pSpheres.push_back(dataFunction);
 }
 
-std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::SubdivideIcosahedron(std::vector<Vertex> verticies, std::vector<unsigned int> indicies, int depth)
+std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::SubdivideIcosahedron(std::vector<Vertex> verticies, std::vector<Triangle> indicies, int depth)
 {
 	if (depth == 0)
 	{
 		return std::make_pair(verticies, indicies);
 	}
 
-	std::vector<Vertex> newVerticies;
-	std::vector<unsigned int> newIndicies;
-	for (size_t i = 0; i < indicies.size() / 3; i++)
+	std::vector<Triangle> newIndicies;
+	for (size_t i = 0; i < indicies.size(); i += 1)
 	{
-		newVerticies.push_back((verticies[indicies[i]] + verticies[indicies[i + 1]]) / 2);
-		newVerticies.push_back((verticies[indicies[i + 1]] + verticies[indicies[i + 2]]) / 2);
-		newVerticies.push_back((verticies[indicies[i]] + verticies[indicies[i + 2]]) / 2);
+		// push back the first three original verticies
+		verticies.push_back(((verticies[indicies[i].a] + verticies[indicies[i].b]) / 2).normalise()); //v12
+		verticies.push_back(((verticies[indicies[i].a] + verticies[indicies[i].c]) / 2).normalise()); //v13
+		verticies.push_back(((verticies[indicies[i].b] + verticies[indicies[i].c]) / 2).normalise()); //v23
+		
+		// create a triangle with verticies v1, v12, v13
+		newIndicies.push_back({ indicies[i].a, verticies.size() - 3, verticies.size() - 2 });
+		// create a triangle with verticies v2, v23, v12
+		newIndicies.push_back({ indicies[i].b, verticies.size() - 1, verticies.size() - 3 });
+		// create a triangle with verticies v3, v13, v23
+		newIndicies.push_back({ indicies[i].c, verticies.size() - 2, verticies.size() - 1 });
+		// create a triangle with verticies v12, v23, v13
+		newIndicies.push_back({ verticies.size() - 3, verticies.size() - 1, verticies.size() - 2 });
+	}
+	/*for (size_t i = 0; i < indicies.size() / 3; i++)
+	{
+		newVerticies.push_back(verticies[indicies[i]]);
+		newVerticies.push_back(((verticies[indicies[i]] + verticies[indicies[i + 1]]) / 2).normalise()); //v12
+		newVerticies.push_back(((verticies[indicies[i + 1]] + verticies[indicies[i + 2]]) / 2).normalise()); //v23
+		newVerticies.push_back(((verticies[indicies[i]] + verticies[indicies[i + 2]]) / 2).normalise()); //v13
 
 		newIndicies.push_back(indicies[i]);
 		newIndicies.push_back(newVerticies.size() - 3);
@@ -214,9 +230,9 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::SubdivideIco
 		newIndicies.push_back(newVerticies.size() - 3);
 		newIndicies.push_back(newVerticies.size() - 2);
 		newIndicies.push_back(newVerticies.size() - 1);
-	}
+	}*/
 
-	return SubdivideIcosahedron(newVerticies, newIndicies, depth - 1);
+	return SubdivideIcosahedron(verticies, newIndicies, depth - 1);
 }
 
 std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset)
@@ -262,23 +278,33 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 		{  Z, X, N, colour.r, colour.g, 1 - colour.b, colour.a }, { -Z, X, N, 1 - colour.r, colour.g, 1 - colour.b, colour.a  }, {  Z,-X, N, colour.r, colour.g, 1 - colour.b, colour.a  }, { -Z,-X, N, colour.r, colour.g, colour.b, colour.a  }
 	};
 
-	std::vector<unsigned int> indicies = 
+	std::vector<Triangle> indicies = 
 	{
-		0, 4, 1,   0, 9, 4,   9, 5,  4,  4,  5, 8,  4, 8, 1,
-		8, 10, 1,  8, 3, 10,  5, 3,  8,  5,  2, 3,  2, 7, 3,
-		7, 10, 3,  7, 6, 10,  7, 11, 6,  11, 0, 6,  0, 1, 6,
-		6, 1, 10,  9, 0, 11,  9, 11, 2,  9,  2, 5,  7, 2, 11
+		{ 0, 4,  1 }, { 0, 9, 4 },  { 9, 5,  4 }, { 4,  5, 8 }, { 4, 8, 1 },
+		{ 8, 10, 1 }, { 8, 3, 10 }, { 5, 3,  8 }, { 5,  2, 3 }, { 2, 7, 3 },
+		{ 7, 10, 3 }, { 7, 6, 10 }, { 7, 11, 6 }, { 11, 0, 6 }, { 0, 1, 6 },
+		{ 6, 1, 10 }, { 9, 0, 11 }, { 9, 11, 2 }, { 9,  2, 5 }, { 7, 2, 11 }
 	};
 
 	// subdivide icosahedron
 	auto ret = SubdivideIcosahedron(verticies, indicies, mDepth);
 
+	// apply translation and scale to verticies
+	for (size_t i = 0; i < ret.first.size(); i++)
+	{
+		ret.first[i] *= radius;
+		ret.first[i] += position;
+	}
+	// add current offset in data to all indicies and convert to pure uint list
+	std::vector<unsigned int> ind;
 	for (size_t i = 0; i < ret.second.size(); i++)
 	{
-		ret.second[i] += offset; // add current offset in data to all indicies
+		ind.push_back(ret.second[i].a + offset);
+		ind.push_back(ret.second[i].b + offset);
+		ind.push_back(ret.second[i].c + offset);
 	};
 
-	return ret;
+	return std::make_pair(ret.first, ind);
 }
 
 void Graphics::Draw()
