@@ -91,8 +91,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ImGui_ImplWin32_Init(hWnd);
 
 	std::vector<Body> bodies;
-	bodies.push_back(Body(10, 0.15f, { 1.7f, 0.4f, 0.2f }, { 0.0f, 1.0f, 0.0f }));
-	bodies.push_back(Body(50, 0.35f, { -1.8f, -0.4f, 0.8f }, { 1.0f, 0.0f, 0.0f }));
+	bodies.push_back(Body(10, 0.15f, { 1.7f, 0.4f, 0.2f }));
+	bodies.push_back(Body(50, 0.35f, { -1.8f, -0.4f, 0.8f }));
 	for (size_t i = 0; i < bodies.size(); i++)
 	{
 		gfx.AddSphere(std::bind(&Body::GetData, &bodies[i]));

@@ -110,7 +110,7 @@ void Graphics::BindVertexShader(std::wstring filepath)
 	HRESULT hr = 0;
 	// compile shader
 	Microsoft::WRL::ComPtr<ID3DBlob> errors;
-	THROWHR(D3DCompileFromFile(
+	hr = D3DCompileFromFile(
 		filepath.c_str(),
 		NULL,
 		NULL,
@@ -120,15 +120,15 @@ void Graphics::BindVertexShader(std::wstring filepath)
 		0,
 		&pBlobVS,
 		&errors
-	));
+	);
 
 	// load shader
-	THROWHR(pDevice->CreateVertexShader(
+	hr = pDevice->CreateVertexShader(
 		pBlobVS->GetBufferPointer(),
 		pBlobVS->GetBufferSize(),
 		NULL,
 		&pVS
-	));
+	);
 
 	// set shader
 	pDeviceContext->VSSetShader(
@@ -141,10 +141,11 @@ void Graphics::BindVertexShader(std::wstring filepath)
 void Graphics::BindPixelShader(std::wstring filepath)
 {
 	Microsoft::WRL::ComPtr<ID3DBlob> pBlobPS;
+	HRESULT hr;
 
 	// compile shader
 	Microsoft::WRL::ComPtr<ID3DBlob> errors;
-	THROWHR(D3DCompileFromFile(
+	hr = D3DCompileFromFile(
 		filepath.c_str(),
 		NULL,
 		NULL,
@@ -154,15 +155,15 @@ void Graphics::BindPixelShader(std::wstring filepath)
 		0,
 		&pBlobPS,
 		&errors
-	));
+	);
 
 	// load shader
-	THROWHR(pDevice->CreatePixelShader(
+	hr = pDevice->CreatePixelShader(
 		pBlobPS->GetBufferPointer(),
 		pBlobPS->GetBufferSize(),
 		NULL,
 		&pPS
-	));
+	);
 
 	// set shader
 	pDeviceContext->PSSetShader(
@@ -179,7 +180,7 @@ void Graphics::Clear(Colour colour)
 	pDeviceContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
 
-void Graphics::AddSphere(std::function<std::tuple<float, Colour, Vec3f>()> dataFunction)
+void Graphics::AddSphere(std::function<std::tuple<float, Vec3f>()> dataFunction)
 {
 	pSpheres.push_back(dataFunction);
 }
@@ -195,9 +196,15 @@ std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::SubdivideIcosahe
 	for (size_t i = 0; i < indicies.size(); i += 1)
 	{
 		// push back the first three original verticies
-		verticies.push_back(((verticies[indicies[i].a] + verticies[indicies[i].b]) / 2).normalise()); //v12
-		verticies.push_back(((verticies[indicies[i].a] + verticies[indicies[i].c]) / 2).normalise()); //v13
-		verticies.push_back(((verticies[indicies[i].b] + verticies[indicies[i].c]) / 2).normalise()); //v23
+		Vertex v12 = ((verticies[indicies[i].a] + verticies[indicies[i].b]) / 2).normalise();
+		v12.colourID = verticies.back().colourID + 1;
+		Vertex v13 = ((verticies[indicies[i].a] + verticies[indicies[i].c]) / 2).normalise();
+		v12.colourID = verticies.back().colourID + 2;
+		Vertex v23 = ((verticies[indicies[i].b] + verticies[indicies[i].c]) / 2).normalise();
+		v12.colourID = verticies.back().colourID + 3;
+		verticies.push_back(v12);
+		verticies.push_back(v13);
+		verticies.push_back(v23);
 		
 		// create a triangle with verticies v1, v12, v13
 		newIndicies.push_back({ indicies[i].a, verticies.size() - 3, verticies.size() - 2 });
@@ -208,34 +215,11 @@ std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::SubdivideIcosahe
 		// create a triangle with verticies v12, v23, v13
 		newIndicies.push_back({ verticies.size() - 3, verticies.size() - 1, verticies.size() - 2 });
 	}
-	/*for (size_t i = 0; i < indicies.size() / 3; i++)
-	{
-		newVerticies.push_back(verticies[indicies[i]]);
-		newVerticies.push_back(((verticies[indicies[i]] + verticies[indicies[i + 1]]) / 2).normalise()); //v12
-		newVerticies.push_back(((verticies[indicies[i + 1]] + verticies[indicies[i + 2]]) / 2).normalise()); //v23
-		newVerticies.push_back(((verticies[indicies[i]] + verticies[indicies[i + 2]]) / 2).normalise()); //v13
-
-		newIndicies.push_back(indicies[i]);
-		newIndicies.push_back(newVerticies.size() - 3);
-		newIndicies.push_back(newVerticies.size() - 1);
-
-		newIndicies.push_back(indicies[i + 1]);
-		newIndicies.push_back(newVerticies.size() - 2);
-		newIndicies.push_back(newVerticies.size() - 3);
-
-		newIndicies.push_back(indicies[i + 2]);
-		newIndicies.push_back(newVerticies.size() - 1);
-		newIndicies.push_back(newVerticies.size() - 2);
-
-		newIndicies.push_back(newVerticies.size() - 3);
-		newIndicies.push_back(newVerticies.size() - 2);
-		newIndicies.push_back(newVerticies.size() - 1);
-	}*/
 
 	return SubdivideIcosahedron(verticies, newIndicies, depth - 1);
 }
 
-std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Colour colour, Vec3f position, size_t offset)
+std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Vec3f position, size_t offset)
 {
 	/* old code for generating cubes of roughly the right dimensions
 	std::vector<Vertex> verticies =
@@ -273,9 +257,9 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 
 	std::vector<Vertex> verticies =
 	{
-		{ -X, N, Z, 1 - colour.r, colour.g, colour.b, colour.a }, {  X, N, Z, 1 - colour.r, 1 - colour.g, colour.b, colour.a  }, { -X, N,-Z, 1 - colour.r, colour.g, colour.b, colour.a  }, {  X, N,-Z, colour.r, colour.g, colour.b, colour.a  },
-		{  N, Z, X, colour.r, 1 - colour.g, colour.b, colour.a }, {  N, Z,-X, colour.r, 1 - colour.g, 1 - colour.b, colour.a  }, {  N,-Z, X, colour.r, colour.g, colour.b, colour.a  }, {  N,-Z,-X, colour.r, 1 - colour.g, colour.b, colour.a  },
-		{  Z, X, N, colour.r, colour.g, 1 - colour.b, colour.a }, { -Z, X, N, 1 - colour.r, colour.g, 1 - colour.b, colour.a  }, {  Z,-X, N, colour.r, colour.g, 1 - colour.b, colour.a  }, { -Z,-X, N, colour.r, colour.g, colour.b, colour.a  }
+		{ -X, N, Z, 0.0f }, {  X, N, Z, 3.0f  }, { -X, N,-Z, 6.0f  }, {  X, N,-Z, 9.0f  },
+		{  N, Z, X, 1.0f }, {  N, Z,-X, 4.0f  }, {  N,-Z, X, 7.0f  }, {  N,-Z,-X, 10.0f  },
+		{  Z, X, N, 2.0f }, { -Z, X, N, 5.0f  }, {  Z,-X, N, 8.0f  }, { -Z,-X, N, 11.0f  }
 	};
 
 	std::vector<Triangle> indicies = 
@@ -317,7 +301,7 @@ void Graphics::Draw()
 		auto data = pSpheres[i]();
 		if (std::get<0>(data) == 0.0f)
 			continue; // if the radius is 0, the sphere is void and should not be rendered
-		auto points = GenerateSphere(std::get<0>(data), std::get<1>(data), std::get<2>(data), VData.size());
+		auto points = GenerateSphere(std::get<0>(data), std::get<1>(data), VData.size());
 		VData.insert(VData.end(), points.first.begin(), points.first.end());
 		IData.insert(IData.end(), points.second.begin(), points.second.end());
 	}
@@ -374,7 +358,7 @@ void Graphics::Draw()
 		0u
 	);
 
-	// create the constant buffer
+	// create the matrix constant buffer
 	DirectX::XMMATRIX view = DirectX::XMMatrixLookToLH(CameraPos.DX(1.0f), CameraDir.DX(0.0f), DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 	ConstantBuffer CData =
 	{
@@ -401,12 +385,40 @@ void Graphics::Draw()
 	));
 	// bind constant buffer
 	pDeviceContext->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf());
+
+	// create the colour constant buffer
+	ColourBuffer CCData =
+	{
+		{
+			{ 1.0f, 0.0f, 0.0f, 1.0f },
+			{ 0.0f, 1.0f, 0.0f, 1.0f },
+			{ 0.0f, 0.0f, 1.0f, 1.0f },
+			{ 0.0f, 1.0f, 1.0f, 1.0f }
+		}
+	};
+	Microsoft::WRL::ComPtr<ID3D11Buffer> pCConstantBuffer;
+	D3D11_BUFFER_DESC CCBufferDesc;
+	CCBufferDesc.ByteWidth = sizeof(CCData);
+	CCBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	CCBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	CCBufferDesc.CPUAccessFlags = 0u;
+	CCBufferDesc.MiscFlags = 0u;
+	CCBufferDesc.StructureByteStride = 0u;
+	D3D11_SUBRESOURCE_DATA CCBufferSR = {};
+	CCBufferSR.pSysMem = &CCData;
+	THROWHR(pDevice->CreateBuffer(
+		&CCBufferDesc,
+		&CCBufferSR,
+		&pCConstantBuffer
+	));
+	// bind constant buffer
+	pDeviceContext->PSSetConstantBuffers(0u, 1u, pCConstantBuffer.GetAddressOf());
 	
 	// define the input layout
 	const D3D11_INPUT_ELEMENT_DESC iLayout[] =
 	{
 		{"Position", 0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u, 0u, D3D11_INPUT_PER_VERTEX_DATA, 0u},
-		{"Colour", 0u, DXGI_FORMAT_R32G32B32A32_FLOAT, 0u, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0u}
+		{"Colour", 0u, DXGI_FORMAT_R32_FLOAT, 0u, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0u}
 	};
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
 	THROWHR(pDevice->CreateInputLayout(

@@ -5,11 +5,11 @@ cbuffer CBuf
 
 struct VSOut
 {
-	float4 colour : Colour;
+	float colour : Colour;
 	float4 pos : SV_Position;
 };
 
-VSOut main(float4 pos : Position, float4 col : Colour)
+VSOut main(float4 pos : Position, float col : Colour)
 {
 	VSOut vsout;
 	vsout.pos = mul(pos, mvp);
