@@ -180,7 +180,7 @@ void Graphics::Clear(Colour colour)
 	pDeviceContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
 
-void Graphics::AddSphere(std::function<std::tuple<float, Vec3f>()> dataFunction)
+void Graphics::AddSphere(std::function<std::tuple<float, Vec3f, float>()> dataFunction)
 {
 	pSpheres.push_back(dataFunction);
 }
@@ -197,11 +197,8 @@ std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::SubdivideIcosahe
 	{
 		// push back the first three original verticies
 		Vertex v12 = ((verticies[indicies[i].a] + verticies[indicies[i].b]) / 2).normalise();
-		v12.colourID = verticies.back().colourID + 1;
 		Vertex v13 = ((verticies[indicies[i].a] + verticies[indicies[i].c]) / 2).normalise();
-		v12.colourID = verticies.back().colourID + 2;
 		Vertex v23 = ((verticies[indicies[i].b] + verticies[indicies[i].c]) / 2).normalise();
-		v12.colourID = verticies.back().colourID + 3;
 		verticies.push_back(v12);
 		verticies.push_back(v13);
 		verticies.push_back(v23);
@@ -219,7 +216,7 @@ std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::SubdivideIcosahe
 	return SubdivideIcosahedron(verticies, newIndicies, depth - 1);
 }
 
-std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Vec3f position, size_t offset)
+std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Vec3f position, size_t offset, float colourID)
 {
 	/* old code for generating cubes of roughly the right dimensions
 	std::vector<Vertex> verticies =
@@ -257,9 +254,9 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 
 	std::vector<Vertex> verticies =
 	{
-		{ -X, N, Z, 0.0f }, {  X, N, Z, 3.0f  }, { -X, N,-Z, 6.0f  }, {  X, N,-Z, 9.0f  },
-		{  N, Z, X, 1.0f }, {  N, Z,-X, 4.0f  }, {  N,-Z, X, 7.0f  }, {  N,-Z,-X, 10.0f  },
-		{  Z, X, N, 2.0f }, { -Z, X, N, 5.0f  }, {  Z,-X, N, 8.0f  }, { -Z,-X, N, 11.0f  }
+		{ -X, N, Z }, {  X, N, Z }, { -X, N,-Z, }, {  X, N,-Z, },
+		{  N, Z, X }, {  N, Z,-X }, {  N,-Z, X, }, {  N,-Z,-X, },
+		{  Z, X, N }, { -Z, X, N }, {  Z,-X, N, }, { -Z,-X, N, }
 	};
 
 	std::vector<Triangle> indicies = 
@@ -301,7 +298,7 @@ void Graphics::Draw()
 		auto data = pSpheres[i]();
 		if (std::get<0>(data) == 0.0f)
 			continue; // if the radius is 0, the sphere is void and should not be rendered
-		auto points = GenerateSphere(std::get<0>(data), std::get<1>(data), VData.size());
+		auto points = GenerateSphere(std::get<0>(data), std::get<1>(data), VData.size(), std::get<2>(data));
 		VData.insert(VData.end(), points.first.begin(), points.first.end());
 		IData.insert(IData.end(), points.second.begin(), points.second.end());
 	}
@@ -369,7 +366,7 @@ void Graphics::Draw()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pConstantBuffer;
-	D3D11_BUFFER_DESC CBufferDesc;
+	D3D11_BUFFER_DESC CBufferDesc = {};
 	CBufferDesc.ByteWidth = sizeof(CData);
 	CBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	CBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -387,25 +384,31 @@ void Graphics::Draw()
 	pDeviceContext->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf());
 
 	// create the colour constant buffer
-	ColourBuffer CCData =
+	ColourBuffer ColourData =
 	{
+		{
+			(float)(20 * std::pow(4, mDepth)),
+			(float)(20 * std::pow(4, mDepth)),
+			(float)(20 * std::pow(4, mDepth)),
+			(float)(20 * std::pow(4, mDepth))
+		},
 		{
 			{ 1.0f, 0.0f, 0.0f, 1.0f },
 			{ 0.0f, 1.0f, 0.0f, 1.0f },
 			{ 0.0f, 0.0f, 1.0f, 1.0f },
-			{ 0.0f, 1.0f, 1.0f, 1.0f }
+			{ 0.0f, 1.0f, 1.0f, 1.0f },
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pCConstantBuffer;
-	D3D11_BUFFER_DESC CCBufferDesc;
-	CCBufferDesc.ByteWidth = sizeof(CCData);
+	D3D11_BUFFER_DESC CCBufferDesc = {};
+	CCBufferDesc.ByteWidth = sizeof(ColourData);
 	CCBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	CCBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	CCBufferDesc.CPUAccessFlags = 0u;
 	CCBufferDesc.MiscFlags = 0u;
 	CCBufferDesc.StructureByteStride = 0u;
 	D3D11_SUBRESOURCE_DATA CCBufferSR = {};
-	CCBufferSR.pSysMem = &CCData;
+	CCBufferSR.pSysMem = &ColourData;
 	THROWHR(pDevice->CreateBuffer(
 		&CCBufferDesc,
 		&CCBufferSR,
@@ -413,12 +416,11 @@ void Graphics::Draw()
 	));
 	// bind constant buffer
 	pDeviceContext->PSSetConstantBuffers(0u, 1u, pCConstantBuffer.GetAddressOf());
-	
+		
 	// define the input layout
 	const D3D11_INPUT_ELEMENT_DESC iLayout[] =
 	{
-		{"Position", 0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u, 0u, D3D11_INPUT_PER_VERTEX_DATA, 0u},
-		{"Colour", 0u, DXGI_FORMAT_R32_FLOAT, 0u, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0u}
+		{"Position", 0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u, 0u, D3D11_INPUT_PER_VERTEX_DATA, 0u}
 	};
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
 	THROWHR(pDevice->CreateInputLayout(

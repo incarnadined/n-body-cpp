@@ -1,17 +1,10 @@
-/*float4 colours[4] = {
-    { 1.0f, 0.0f, 0.0f, 1.0f },
-    { 0.0f, 1.0f, 0.0f, 1.0f },
-    { 0.0f, 0.0f, 1.0f, 1.0f },
-    { 0.0f, 1.0f, 1.0f, 1.0f },
-};*/
-
 cbuffer ColourBuf
 {
-    float4 colours[4];
+    float count;
+    float4 colours[8];
 };
 
-float4 main(float colour : Colour) : SV_TARGET
+float4 main(uint id : SV_PrimitiveID) : SV_TARGET
 {
-    return colours[colour % 4];
-    //return float4(colour / 11.0f, colour / 11.0f, colour / 11.0f, 1.0f);
+    return colours[id / count];
 }

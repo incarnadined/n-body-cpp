@@ -93,8 +93,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ImGui_ImplWin32_Init(hWnd);
 
 	std::vector<Body> bodies;
-	bodies.push_back(Body(10, 0.15f, { 1.7f, 0.4f, 0.2f }));
-	bodies.push_back(Body(50, 0.35f, { -1.8f, -0.4f, 0.8f }));
+	bodies.push_back(Body(1, 0.15f, { 1.7f, 0.4f, 0.2f }, 2.0f));
+	bodies.push_back(Body(4, 0.35f, { -0.2f, -0.3f, 1.2f }, 2.0f));
+	bodies.push_back(Body(1.5, 0.19f, { -1.8f, -0.4f, 0.8f }, 2.0f));
+	bodies.push_back(Body(2.7, 0.24f, { -1.4f, 0.6f, 3.0f }, 2.0f));
 	for (size_t i = 0; i < bodies.size(); i++)
 	{
 		gfx.AddSphere(std::bind(&Body::GetData, &bodies[i]));

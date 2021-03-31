@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Body.h"
 
-Body::Body(double mass, float radius, Vec3f position)
-	: mMass(mass), mRadius(radius), mPosition(position)
+Body::Body(double mass, float radius, Vec3f position, float colourID)
+	: mMass(mass), mRadius(radius), mPosition(position), mColourID(colourID)
 {
 }
 
@@ -15,9 +15,9 @@ void Body::Move(Vec3f translation)
 	mPosition += translation;
 }
 
-std::tuple<float, Vec3f> Body::GetData()
+std::tuple<float, Vec3f, float> Body::GetData()
 {
-	return std::make_tuple(mRadius, mPosition);
+	return std::make_tuple(mRadius, mPosition, mColourID);
 }
 
 double Body::GetMass()

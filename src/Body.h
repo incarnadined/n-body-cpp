@@ -6,11 +6,11 @@
 class Body
 {
 public:
-	Body(double mMass, float mRadius, Vec3f position);
+	Body(double mMass, float mRadius, Vec3f position, float colourID);
 	~Body();
 
 	void Move(Vec3f translation);
-	std::tuple<float, Vec3f> GetData();
+	std::tuple<float, Vec3f, float> GetData();
 
 	double GetMass();
 	float GetRadius();
@@ -24,6 +24,7 @@ public:
 private:
 	double mMass;
 	float mRadius;
+	float mColourID;
 	Vec3f mPosition;
 	Vec3f mVelocity;
 };
