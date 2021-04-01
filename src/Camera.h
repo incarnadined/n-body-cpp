@@ -11,13 +11,20 @@ public:
 
 	DirectX::XMMATRIX GetCamera();
 	void Translate(Vec3f translation);
+	
+	void SetAspectRatio(float aspectratio);
+	void SetNearPlane(float nearplane);
+	void SetFarPlane(float farplane);
 
 private:
-	float r;
-	float theta;
-	float phi;
+	Vec3f pos;
+	Vec3f dir;
+	float roll;
 	float pitch;
 	float yaw;
-	float roll;
+	float fov;
+	float aspectRatio;
+	float nearPlane;
+	float farPlane;
 };
 
