@@ -5,10 +5,9 @@
 #pragma comment (lib, "D3DCompiler.lib")
 
 #define THROWHR(hr) if(FAILED(hr)) {MessageBox(nullptr, (LPCWSTR)__LINE__, L"HR Error", MB_OK);}
-constexpr float pi = 3.141592654f;
 
 Graphics::Graphics()
-	: starConcentration(0.5), mWidth(800), mHeight(600), CameraPos(0.0f, 0.0f, -1.0f), CameraDir(0.0f, 0.0f, 1.0f), mDepth(4)
+	: starConcentration(0.5), mWidth(800), mHeight(600), mDepth(4)
 {
 }
 
@@ -185,6 +184,11 @@ void Graphics::AddSphere(std::function<std::tuple<float, Vec3f, float>()> dataFu
 	pSpheres.push_back(dataFunction);
 }
 
+Camera& Graphics::GetCamera()
+{
+	return camera;
+}
+
 std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::SubdivideIcosahedron(std::vector<Vertex> verticies, std::vector<Triangle> indicies, int depth)
 {
 	if (depth == 0)
@@ -356,13 +360,10 @@ void Graphics::Draw()
 	);
 
 	// create the matrix constant buffer
-	DirectX::XMMATRIX view = DirectX::XMMatrixLookToLH(CameraPos.DX(1.0f), CameraDir.DX(0.0f), DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 	ConstantBuffer CData =
 	{
 		{
-			DirectX::XMMatrixTranspose(
-				view * DirectX::XMMatrixPerspectiveFovLH(pi / 2, 16.0f / 9.0f, 0.5f, 10.0f)
-			)
+			camera.GetCamera()
 		}
 	};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pConstantBuffer;
@@ -450,16 +451,6 @@ void Graphics::Draw()
 void Graphics::EndFrame()
 {
 	pSwapChain->Present(1u, 0u);
-}
-
-void Graphics::Translate(Vec3f vec)
-{
-	CameraPos += vec;
-}
-
-void Graphics::SetCamera(Vec3f vec)
-{
-	CameraPos = vec;
 }
 
 float Graphics::GetStarConc()

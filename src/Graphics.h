@@ -54,17 +54,12 @@ public:
 	void Draw(); 
 	void EndFrame();
 
-	// camera
-	void Translate(Vec3f vec);
-	void SetCamera(Vec3f vec);
-	Vec3f CameraPos;
-	Vec3f CameraDir;
-
 	// Getters/Setters
 	float GetStarConc();
 	void SetStarConc(float conc);
 	int mDepth;
 
+	Camera& GetCamera();
 
 private:
 	std::vector< // a vector containing pointers to the functions that can be called to get spherical data
@@ -75,6 +70,7 @@ private:
 	float starConcentration; // star intensity (0-1)
 	float mWidth;
 	float mHeight;
+	Camera camera;
 
 	// com objects
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;

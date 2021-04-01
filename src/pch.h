@@ -45,3 +45,4 @@ inline constexpr unsigned char operator "" _uc(unsigned long long arg) noexcept
 }
 
 constexpr int G = 100;
+constexpr double pi = 3.14159265359;

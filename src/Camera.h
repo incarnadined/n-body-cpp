@@ -10,11 +10,14 @@ public:
 	~Camera();
 
 	DirectX::XMMATRIX GetCamera();
-	void Translate(Vec3f translation);
+	void DrawImGui();
 	
+	void Translate(Vec3f translation);
+	void SetCamera(Vec3f translation);
 	void SetAspectRatio(float aspectratio);
 	void SetNearPlane(float nearplane);
 	void SetFarPlane(float farplane);
+	Vec3f GetPosition();
 
 private:
 	Vec3f pos;

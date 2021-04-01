@@ -30,22 +30,22 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT uMsg, WPARAM wp, LPARAM lp)
 		switch (wp)
 		{
 		case 'W':
-			gfx.Translate({ 0.0f, 0.0f, 0.01f });
+			gfx.GetCamera().Translate({ 0.0f, 0.0f, 0.01f });
 			break;
 		case 'S':
-			gfx.Translate({ 0.0f, 0.0f, -0.01f });
+			gfx.GetCamera().Translate({ 0.0f, 0.0f, -0.01f });
 			break;
 		case 'A':
-			gfx.Translate({ -0.01f, 0.0f, 0.0f });
+			gfx.GetCamera().Translate({ -0.01f, 0.0f, 0.0f });
 			break;
 		case 'D':
-			gfx.Translate({ 0.01f, 0.0f, 0.0f });
+			gfx.GetCamera().Translate({ 0.01f, 0.0f, 0.0f });
 			break;
 		case VK_SPACE:
-			gfx.Translate({ 0.0f, 0.01f, 0.0f });
+			gfx.GetCamera().Translate({ 0.0f, 0.01f, 0.0f });
 			break;
 		case VK_SHIFT:
-			gfx.Translate({ 0.0f, -0.01f, 0.0f });
+			gfx.GetCamera().Translate({ 0.0f, -0.01f, 0.0f });
 			break;
 		case 'P':
 			paused = paused == true ? false : true;
@@ -156,16 +156,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				ImGui::BulletText("Pos Z: %f", bodies[i].GetPosition().GetZ());
 				if (ImGui::Button("Snap"))
 				{
-					gfx.SetCamera(bodies[i].GetPosition());
+					gfx.GetCamera().SetCamera(bodies[i].GetPosition());
 				}
 				ImGui::Separator();
 			}
 		}
 		if (ImGui::CollapsingHeader("Camera"))
 		{
-			ImGui::BulletText("Pos X: %f", gfx.CameraPos.GetX());
-			ImGui::BulletText("Pos Y: %f", gfx.CameraPos.GetY());
-			ImGui::BulletText("Pos Z: %f", gfx.CameraPos.GetZ());
+			gfx.GetCamera().DrawImGui();
 		}
 		ImGui::SliderFloat("Timestep", &dt, 0.001f, 1);
 		ImGui::SliderInt("Subdivisions", &gfx.mDepth, 0, 5);
