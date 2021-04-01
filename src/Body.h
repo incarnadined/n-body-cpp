@@ -6,14 +6,16 @@
 class Body
 {
 public:
-	Body(double mMass, float mRadius, Vec3f position, float colourID);
+	Body(double mMass, float mRadius, Vec3f position, Colour colour);
 	~Body();
 
 	void Move(Vec3f translation);
-	std::tuple<float, Vec3f, float> GetData();
+	std::tuple<float, Vec3f, Colour> GetData();
 
 	double GetMass();
 	float GetRadius();
+	Colour GetColour();
+	void SetColour(Colour colour);
 	Vec3f GetPosition();
 
 	void ApplyForce(Body& other, float dt); // applies a force and calls the second overload for the other body with the precalculated force
@@ -24,7 +26,7 @@ public:
 private:
 	double mMass;
 	float mRadius;
-	float mColourID;
+	Colour mColour;
 	Vec3f mPosition;
 	Vec3f mVelocity;
 };

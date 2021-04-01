@@ -2,6 +2,7 @@
 #include "pch.h"
 
 #include "Vec3.h"
+#include "Clock.h"
 #include "Camera.h"
 
 struct Vertex 
@@ -29,13 +30,7 @@ struct ConstantBuffer
 struct ColourBuffer
 {
 	float trianglesPerSphere[4];
-	struct
-	{
-		float r;
-		float g;
-		float b;
-		float a;
-	} colours[8];
+	Colour colours[8];
 };
 
 class Graphics
@@ -48,29 +43,34 @@ public:
 	void BindVertexShader(std::wstring filepath);
 	void BindPixelShader(std::wstring filepath);
 	void Clear(Colour colour); // clears the screen to the specified colour - resets rtv, dsv
-	void AddSphere(std::function<std::tuple<float, Vec3f, float>()> dataFunction); // adds a sphere location callback to the active drawable objects
-	std::pair<std::vector<Vertex>, std::vector<Triangle>> SubdivideIcosahedron(std::vector<Vertex> verticies, std::vector<Triangle> indicies, int depth);
-	std::pair<std::vector<Vertex>, std::vector<unsigned int>> GenerateSphere(float radius, Vec3f position, size_t offset, float colourID); // returns vertex and index array for a sphere (starting with cubes for now)
+	void AddSphere(std::function<std::tuple<float, Vec3f, Colour>()> dataFunction); // adds a sphere location callback to the active drawable objects
+	static void SubdivideIcosahedron(int depth);
+	static void GenerateSphereMesh(int depth); // populates mesh with vertex and index array for a sphere
+	std::pair<std::vector<Vertex>, std::vector<unsigned int>> GenerateSphere(float radius, Vec3f position, size_t offset); // returns vertex and index array for a sphere
 	void Draw(); 
+	void DrawImGui();
 	void EndFrame();
 
 	// Getters/Setters
 	float GetStarConc();
 	void SetStarConc(float conc);
-	int mDepth;
+	void SetSubdivisions(int depth);
 
 	Camera& GetCamera();
 
 private:
 	std::vector< // a vector containing pointers to the functions that can be called to get spherical data
 		std::function<
-			std::tuple<float, Vec3f, float>() // the function returns a tuple in the form <RADIUS, COLOUR, POSITION)
+			std::tuple<float, Vec3f, Colour>() // the function returns a tuple in the form <RADIUS, POSITION, POSITION>
 		>> pSpheres;
+	static std::pair<std::vector<Vertex>, std::vector<Triangle>> mesh;
 
 	float starConcentration; // star intensity (0-1)
 	float mWidth;
 	float mHeight;
+	int currentDepth = 3;
 	Camera camera;
+	Clock clock;
 
 	// com objects
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;

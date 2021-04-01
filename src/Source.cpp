@@ -86,7 +86,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	AdjustWindowRect(&clientArea, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE, false);
 
 	HWND hWnd = CreateWindowEx(NULL, L"N-Body-Class", L"N-Body Simulation", WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_VISIBLE,
-		200, 200, clientArea.right-clientArea.left, clientArea.bottom-clientArea.top, NULL, NULL, hInstance, NULL);
+		0, 0, clientArea.right-clientArea.left, clientArea.bottom-clientArea.top, NULL, NULL, hInstance, NULL);
 
 	gfx.Init(hWnd, WIDTH, HEIGHT);
 	gfx.BindVertexShader(L"G:\\Coding Projects\\n-body-cpp\\src\\VertexShader.hlsl");
@@ -94,10 +94,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ImGui_ImplWin32_Init(hWnd);
 
 	std::vector<Body> bodies;
-	bodies.push_back(Body(1, 0.15f, { 1.7f, 0.4f, 0.2f }, 2.0f));
-	bodies.push_back(Body(4, 0.35f, { -0.2f, -0.3f, 1.2f }, 2.0f));
-	bodies.push_back(Body(1.5, 0.19f, { -1.8f, -0.4f, 0.8f }, 2.0f));
-	bodies.push_back(Body(2.7, 0.24f, { -1.4f, 0.6f, 3.0f }, 2.0f));
+	bodies.push_back(Body(1, 0.15f, { 1.7f, 0.4f, 0.2f }, { 0x50_uc, 0x40, 0x51 }));
+	bodies.push_back(Body(4, 0.35f, { -0.2f, -0.3f, 1.2f }, { 0xDC_uc, 0x76, 0x4D }));
+	bodies.push_back(Body(1.5, 0.19f, { -1.8f, -0.4f, 0.8f }, { 0x27_uc, 0x30, 0x57 }));
+	bodies.push_back(Body(2.7, 0.24f, { -1.4f, 0.6f, 3.0f }, { 0x60_uc, 0xA8, 0x9B }));
 	for (size_t i = 0; i < bodies.size(); i++)
 	{
 		gfx.AddSphere(std::bind(&Body::GetData, &bodies[i]));
@@ -114,7 +114,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	float dt = 0.001f;
-	Clock clock;
 	MSG msg;
 	while (true)
 	{
@@ -166,10 +165,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			gfx.GetCamera().DrawImGui();
 		}
 		ImGui::SliderFloat("Timestep", &dt, 0.001f, 1);
-		ImGui::SliderInt("Subdivisions", &gfx.mDepth, 0, 5);
-		int diff = clock.Diff();
-		ImGui::Text("Framerate: %ims", diff);
-		ImGui::Text("FPS: %f", 1000.0f/diff);
+		gfx.DrawImGui();
 		if (ImGui::Button("Step"))
 		{
 			for (auto itr = combinations.begin(); itr != combinations.end(); itr++)

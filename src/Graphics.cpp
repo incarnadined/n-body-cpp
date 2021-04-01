@@ -6,9 +6,12 @@
 
 #define THROWHR(hr) if(FAILED(hr)) {MessageBox(nullptr, (LPCWSTR)__LINE__, L"HR Error", MB_OK);}
 
+std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::mesh;
+
 Graphics::Graphics()
-	: starConcentration(0.5), mWidth(800), mHeight(600), mDepth(4)
+	: starConcentration(0.5), mWidth(800), mHeight(600), currentDepth(3)
 {
+	SetSubdivisions(3);
 }
 
 Graphics::~Graphics()
@@ -179,9 +182,15 @@ void Graphics::Clear(Colour colour)
 	pDeviceContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
 
-void Graphics::AddSphere(std::function<std::tuple<float, Vec3f, float>()> dataFunction)
+void Graphics::AddSphere(std::function<std::tuple<float, Vec3f, Colour>()> dataFunction)
 {
 	pSpheres.push_back(dataFunction);
+}
+
+void Graphics::SetSubdivisions(int depth)
+{
+	currentDepth = depth;
+	GenerateSphereMesh(depth);
 }
 
 Camera& Graphics::GetCamera()
@@ -189,13 +198,15 @@ Camera& Graphics::GetCamera()
 	return camera;
 }
 
-std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::SubdivideIcosahedron(std::vector<Vertex> verticies, std::vector<Triangle> indicies, int depth)
+void Graphics::SubdivideIcosahedron(int depth)
 {
 	if (depth == 0)
 	{
-		return std::make_pair(verticies, indicies);
+		return;
 	}
 
+	std::vector<Vertex>& verticies = mesh.first;
+	std::vector<Triangle>& indicies = mesh.second;
 	std::vector<Triangle> newIndicies;
 	for (size_t i = 0; i < indicies.size(); i += 1)
 	{
@@ -216,54 +227,27 @@ std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::SubdivideIcosahe
 		// create a triangle with verticies v12, v23, v13
 		newIndicies.push_back({ verticies.size() - 3, verticies.size() - 1, verticies.size() - 2 });
 	}
+	mesh.second.clear();
+	mesh.second = newIndicies;
 
-	return SubdivideIcosahedron(verticies, newIndicies, depth - 1);
+	return SubdivideIcosahedron(depth - 1);
 }
 
-std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Vec3f position, size_t offset, float colourID)
+void Graphics::GenerateSphereMesh(int depth)
 {
-	/* old code for generating cubes of roughly the right dimensions
-	std::vector<Vertex> verticies =
-	{
-		{position.GetX() - radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() - radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() - radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() + radius, position.GetZ() - radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() + radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() - radius, position.GetY() - radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
-		{position.GetX() - radius, position.GetY() + radius, position.GetZ() + radius, colour.r, colour.g, colour.b, colour.a},
-	};
-
-	std::vector<unsigned int> indicies =
-	{
-		0, 2, 1,
-		0, 3, 2,
-		3, 4, 2,
-		3, 5, 4,
-		5, 6, 4,
-		5, 7, 6,
-		7, 1, 6,
-		7, 0, 1,
-		6, 0, 2,
-		6, 2, 1,
-		7, 5, 3,
-		7, 3, 0
-	};*/
-
 	// generate icosahedron
 	float X = 0.525731112119133606f;
 	float Z = 0.850650808352039932f;
 	float N = 0.0f;
 
-	std::vector<Vertex> verticies =
+	mesh.first =
 	{
 		{ -X, N, Z }, {  X, N, Z }, { -X, N,-Z, }, {  X, N,-Z, },
 		{  N, Z, X }, {  N, Z,-X }, {  N,-Z, X, }, {  N,-Z,-X, },
 		{  Z, X, N }, { -Z, X, N }, {  Z,-X, N, }, { -Z,-X, N, }
 	};
 
-	std::vector<Triangle> indicies = 
+	mesh.second = 
 	{
 		{ 0, 4,  1 }, { 0, 9, 4 },  { 9, 5,  4 }, { 4,  5, 8 }, { 4, 8, 1 },
 		{ 8, 10, 1 }, { 8, 3, 10 }, { 5, 3,  8 }, { 5,  2, 3 }, { 2, 7, 3 },
@@ -271,25 +255,41 @@ std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphe
 		{ 6, 1, 10 }, { 9, 0, 11 }, { 9, 11, 2 }, { 9,  2, 5 }, { 7, 2, 11 }
 	};
 
-	// subdivide icosahedron
-	auto ret = SubdivideIcosahedron(verticies, indicies, mDepth);
+	SubdivideIcosahedron(depth);
+}
 
-	// apply translation and scale to verticies
-	for (size_t i = 0; i < ret.first.size(); i++)
+void Graphics::DrawImGui()
+{
+	// add slider to change detail of spheres
+	if (ImGui::SliderInt("Subdivisions", &currentDepth, 0, 5))
 	{
-		ret.first[i] = ret.first[i] * radius;
-		ret.first[i] = ret.first[i] + position;
+		SetSubdivisions(currentDepth);
+	}
+
+	// draw framerate/fps
+	double diff = clock.Diff();
+	ImGui::Text("Framerate: %ims", diff);
+	ImGui::Text("FPS: %f", 1000.0f / diff);
+}
+
+std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Vec3f position, size_t offset)
+{
+	std::vector<Vertex> verticies;
+	// apply translation and scale to verticies
+	for (size_t i = 0; i < mesh.first.size(); i++)
+	{
+		verticies.push_back(mesh.first[i] * radius + position);
 	}
 	// add current offset in data to all indicies and convert to pure uint list
-	std::vector<unsigned int> ind;
-	for (size_t i = 0; i < ret.second.size(); i++)
+	std::vector<unsigned int> indicies;
+	for (size_t i = 0; i < mesh.second.size(); i++)
 	{
-		ind.push_back(ret.second[i].a + offset);
-		ind.push_back(ret.second[i].b + offset);
-		ind.push_back(ret.second[i].c + offset);
+		indicies.push_back(mesh.second[i].a + offset);
+		indicies.push_back(mesh.second[i].b + offset);
+		indicies.push_back(mesh.second[i].c + offset);
 	};
 
-	return std::make_pair(ret.first, ind);
+	return std::make_pair(verticies, indicies);
 }
 
 void Graphics::Draw()
@@ -302,7 +302,7 @@ void Graphics::Draw()
 		auto data = pSpheres[i]();
 		if (std::get<0>(data) == 0.0f)
 			continue; // if the radius is 0, the sphere is void and should not be rendered
-		auto points = GenerateSphere(std::get<0>(data), std::get<1>(data), VData.size(), std::get<2>(data));
+		auto points = GenerateSphere(std::get<0>(data), std::get<1>(data), VData.size());
 		VData.insert(VData.end(), points.first.begin(), points.first.end());
 		IData.insert(IData.end(), points.second.begin(), points.second.end());
 	}
@@ -388,18 +388,26 @@ void Graphics::Draw()
 	ColourBuffer ColourData =
 	{
 		{
-			(float)(20 * std::pow(4, mDepth)),
-			(float)(20 * std::pow(4, mDepth)),
-			(float)(20 * std::pow(4, mDepth)),
-			(float)(20 * std::pow(4, mDepth))
+			(float)(20 * std::pow(4, currentDepth)),
+			(float)(20 * std::pow(4, currentDepth)),
+			(float)(20 * std::pow(4, currentDepth)),
+			(float)(20 * std::pow(4, currentDepth))
 		},
 		{
-			{ 1.0f, 0.0f, 0.0f, 1.0f },
-			{ 0.0f, 1.0f, 0.0f, 1.0f },
-			{ 0.0f, 0.0f, 1.0f, 1.0f },
-			{ 0.0f, 1.0f, 1.0f, 1.0f },
+			{ 0.0f, 0.0f, 0.0f, 0.0f }, // default all colour slots to black
+			{ 0.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.0f, 0.0f, 0.0f, 0.0f }
 		}
 	};
+	for (size_t i = 0; i < pSpheres.size(); i++)
+	{
+		ColourData.colours[i] = std::get<2>(pSpheres[i]());
+	}
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pCConstantBuffer;
 	D3D11_BUFFER_DESC CCBufferDesc = {};
 	CCBufferDesc.ByteWidth = sizeof(ColourData);
