@@ -2,14 +2,14 @@
 #include "Clock.h"
 
 Clock::Clock()
-	:mOldTime(std::chrono::high_resolution_clock::now())
+	:last(clock())
 {
 }
 
-double Clock::Diff()
+long Clock::Diff()
 {
-	auto diff = std::chrono::high_resolution_clock::now() - mOldTime;
-	mOldTime += diff;
+	auto delta = clock() - last;
+	last += delta;
 
-	return std::chrono::duration<double, std::milli>(diff).count();
+	return delta;
 }

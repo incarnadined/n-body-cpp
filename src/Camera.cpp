@@ -2,7 +2,7 @@
 #include "Camera.h"
 
 Camera::Camera()
-	: pos(0.0f, 0.0f, -10.0f), dir(0.0f, 0.0f, 1.0f), roll(0.0f), pitch(0.0f), yaw(0.0f), fov(pi/2), aspectRatio(16.0f/9.0f), nearPlane(0.5f), farPlane(10.0f)
+	: pos(0.0f, 0.0f, -1.0f), dir(0.0f, 0.0f, 1.0f), roll(0.0f), pitch(0.0f), yaw(0.0f), fov(pi/2), aspectRatio(16.0f/9.0f), nearPlane(0.5f), farPlane(10.0f)
 {
 }
 

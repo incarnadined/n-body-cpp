@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <set>
 #include <chrono>
+#include <time.h>
 
 #include <windows.h>
 #include <d3d11.h>
@@ -36,6 +37,11 @@ struct Colour
 	float g;
 	float b;
 	float a;
+
+	float* farray()
+	{ // pointer to rgba values as in an array
+		return &r;
+	}
 };
 
 // define _uc suffix for unsigned chars
@@ -45,4 +51,4 @@ inline constexpr unsigned char operator "" _uc(unsigned long long arg) noexcept
 }
 
 constexpr int G = 100;
-constexpr double pi = 3.14159265359;
+constexpr float pi = 3.14159265359f;

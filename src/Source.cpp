@@ -149,10 +149,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			for (size_t i = 0; i < bodies.size(); i++)
 			{
-				ImGui::Text("Body %i", i);
-				ImGui::BulletText("Pos X: %f", bodies[i].GetPosition().GetX());
-				ImGui::BulletText("Pos Y: %f", bodies[i].GetPosition().GetY());
-				ImGui::BulletText("Pos Z: %f", bodies[i].GetPosition().GetZ());
+				bodies[i].DrawImGui(i);
 				if (ImGui::Button("Snap"))
 				{
 					gfx.GetCamera().SetCamera(bodies[i].GetPosition());
@@ -172,6 +169,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			{ // for each combination of bodies, apply the force	
 				std::pair<Body&, Body&> pair = *itr;
 				pair.first.ApplyForce(pair.second, dt);
+			}
+		}
+		if (ImGui::Button("Reset"))
+		{
+			for (size_t i = 0; i < bodies.size(); i++)
+			{
+				bodies[i].Reset();
 			}
 		}
 

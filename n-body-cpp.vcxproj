@@ -30,7 +30,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Source.cpp" />
-    <ClCompile Include="src\Sphere.cpp" />
     <ClCompile Include="src\Vec3.cpp" />
     <ClCompile Include="vendor\imgui\backends\imgui_impl_dx11.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -82,7 +81,6 @@
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Graphics.h" />
     <ClInclude Include="src\pch.h" />
-    <ClInclude Include="src\Sphere.h" />
     <ClInclude Include="src\Vec3.h" />
   </ItemGroup>
   <ItemGroup>

@@ -9,8 +9,10 @@ public:
 	Body(double mMass, float mRadius, Vec3f position, Colour colour);
 	~Body();
 
+	void Reset(); // reset to starting location
 	void Move(Vec3f translation);
 	std::tuple<float, Vec3f, Colour> GetData();
+	void DrawImGui(int index);
 
 	double GetMass();
 	float GetRadius();
@@ -28,6 +30,7 @@ private:
 	float mRadius;
 	Colour mColour;
 	Vec3f mPosition;
+	Vec3f mInitialPos;
 	Vec3f mVelocity;
 };
 

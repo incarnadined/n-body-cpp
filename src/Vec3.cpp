@@ -11,6 +11,11 @@ Vec3f::Vec3f(float x, float y, float z)
 {
 }
 
+Vec3f::Vec3f(double x, double y, double z)
+	: x(x), y(y), z(z)
+{
+}
+
 Vec3f::~Vec3f()
 {
 }

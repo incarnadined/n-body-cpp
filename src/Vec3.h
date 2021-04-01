@@ -5,6 +5,7 @@ class Vec3f
 public:
 	Vec3f();
 	Vec3f(float x, float y, float z);
+	Vec3f(double x, double y, double z);
 	~Vec3f();
 
 	float GetX();

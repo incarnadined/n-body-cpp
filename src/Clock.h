@@ -5,9 +5,9 @@ class Clock
 {
 public:
 	Clock();
-	double Diff();
+	long Diff();
 
 private:
-	std::chrono::time_point<std::chrono::high_resolution_clock> mOldTime;
+	clock_t last;
 };
 

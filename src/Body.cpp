@@ -2,12 +2,18 @@
 #include "Body.h"
 
 Body::Body(double mass, float radius, Vec3f position, Colour colour)
-	: mMass(mass), mRadius(radius), mPosition(position), mColour(colour)
+	: mMass(mass), mRadius(radius), mPosition(position), mColour(colour), mInitialPos(position)
 {
 }
 
 Body::~Body()
 {
+}
+
+void Body::Reset()
+{
+	mPosition = mInitialPos;
+	mVelocity = Vec3f();
 }
 
 void Body::Move(Vec3f translation)
@@ -18,6 +24,15 @@ void Body::Move(Vec3f translation)
 std::tuple<float, Vec3f, Colour> Body::GetData()
 {
 	return std::make_tuple(mRadius, mPosition, mColour);
+}
+
+void Body::DrawImGui(int index)
+{
+	ImGui::Text("Body %i", index);
+	ImGui::BulletText("Pos X: %f", mPosition.GetX());
+	ImGui::BulletText("Pos Y: %f", mPosition.GetY());
+	ImGui::BulletText("Pos Z: %f", mPosition.GetZ());
+	ImGui::ColorEdit3("Colour", mColour.farray());
 }
 
 double Body::GetMass()
