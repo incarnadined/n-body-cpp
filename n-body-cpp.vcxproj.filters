@@ -66,6 +66,9 @@
     <ClCompile Include="vendor\imgui\backends\imgui_impl_win32.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\Clock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Body.h">
@@ -87,6 +90,9 @@
       <Filter>Maths</Filter>
     </ClInclude>
     <ClInclude Include="src\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

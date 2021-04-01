@@ -2,6 +2,7 @@
 
 #include "Vec3.h"
 #include "Graphics.h"
+#include "Clock.h"
 #include "Body.h"
 #include "resource.h"
 
@@ -113,6 +114,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	float dt = 0.001f;
+	Clock clock;
 	MSG msg;
 	while (true)
 	{
@@ -167,6 +169,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		ImGui::SliderFloat("Timestep", &dt, 0.001f, 1);
 		ImGui::SliderInt("Subdivisions", &gfx.mDepth, 0, 5);
+		int diff = clock.Diff();
+		ImGui::Text("Framerate: %ims", diff);
+		ImGui::Text("FPS: %f", 1000.0f/diff);
 		if (ImGui::Button("Step"))
 		{
 			for (auto itr = combinations.begin(); itr != combinations.end(); itr++)
@@ -185,4 +190,5 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
+	UnregisterClassW(L"N-Body-Class", hInstance);
 }
