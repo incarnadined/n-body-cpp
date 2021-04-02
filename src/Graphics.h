@@ -68,6 +68,7 @@ private:
 	float starConcentration; // star intensity (0-1)
 	float mWidth;
 	float mHeight;
+	double diff;
 	int currentDepth = 3;
 	Camera camera;
 	Clock clock;

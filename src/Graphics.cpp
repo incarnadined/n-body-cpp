@@ -261,15 +261,14 @@ void Graphics::GenerateSphereMesh(int depth)
 void Graphics::DrawImGui()
 {
 	// add slider to change detail of spheres
-	if (ImGui::SliderInt("Subdivisions", &currentDepth, 0, 5))
+	if (ImGui::SliderInt("Subdivisions", &currentDepth, 0, 3))
 	{
 		SetSubdivisions(currentDepth);
 	}
 
 	// draw framerate/fps
-	double diff = clock.Diff();
-	ImGui::Text("Framerate: %ims", diff);
-	ImGui::Text("FPS: %f", 1000.0f / diff);
+	ImGui::Text("Framerate: %.1fms", diff);
+	ImGui::Text("FPS: %.1f", 1000.0f / diff);
 }
 
 std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Vec3f position, size_t offset)
@@ -296,7 +295,7 @@ void Graphics::Draw()
 {
 	// retrieve vertex and index buffer data for the active spheres
 	std::vector<Vertex> VData;
-	std::vector<int> IData;
+	std::vector<unsigned int> IData;
 	for (std::size_t i = 0; i < pSpheres.size(); i++)
 	{
 		auto data = pSpheres[i]();
@@ -454,6 +453,8 @@ void Graphics::Draw()
 	pDeviceContext->RSSetViewports(1u, &vp);
 
 	pDeviceContext->DrawIndexed(IData.size(), 0u, 0);
+
+	diff = clock.Diff();
 }
 
 void Graphics::EndFrame()
