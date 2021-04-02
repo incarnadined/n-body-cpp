@@ -150,10 +150,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			for (size_t i = 0; i < bodies.size(); i++)
 			{
 				bodies[i].DrawImGui(i);
+				/* don't show this button, the stuff doesn't work and is kidna pointless anyway
 				if (ImGui::Button("Snap"))
 				{
-					gfx.GetCamera().SetCamera(bodies[i].GetPosition());
+					gfx.GetCamera().LoseFollow();
+					gfx.GetCamera().SetFollow(std::bind(&Body::GetPosition, bodies[i]));
 				}
+				*/
 				ImGui::Separator();
 			}
 		}

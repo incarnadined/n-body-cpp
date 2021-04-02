@@ -28,11 +28,13 @@ std::tuple<float, Vec3f, Colour> Body::GetData()
 
 void Body::DrawImGui(int index)
 {
+	ImGui::PushID(index);
 	ImGui::Text("Body %i", index);
 	ImGui::BulletText("Pos X: %f", mPosition.GetX());
 	ImGui::BulletText("Pos Y: %f", mPosition.GetY());
 	ImGui::BulletText("Pos Z: %f", mPosition.GetZ());
 	ImGui::ColorEdit3("Colour", mColour.farray());
+	ImGui::PopID();
 }
 
 double Body::GetMass()
