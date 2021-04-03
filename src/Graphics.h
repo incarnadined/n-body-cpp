@@ -48,6 +48,8 @@ public:
 	static void GenerateSphereMesh(int depth); // populates mesh with vertex and index array for a sphere
 	std::pair<std::vector<Vertex>, std::vector<unsigned int>> GenerateSphere(float radius, Vec3f position, size_t offset); // returns vertex and index array for a sphere
 	void Draw(); 
+	void InitSkybox();
+	void DrawSkybox();
 	void DrawImGui();
 	void EndFrame();
 
@@ -72,6 +74,14 @@ private:
 	int currentDepth = 3;
 	Camera camera;
 	Clock clock;
+
+	// skybox
+	bool sInit;
+	std::vector<Vertex> sVerticies;
+	std::vector<unsigned int> sIndicies;
+	std::vector<std::vector<Colour>> sImages;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pSkyboxTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pSkyboxTextureView;
 
 	// com objects
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwapChain;

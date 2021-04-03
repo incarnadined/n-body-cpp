@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Graphics.h"
 
+#include "Skybox.h"
+
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "D3DCompiler.lib")
 
@@ -9,7 +11,7 @@
 std::pair<std::vector<Vertex>, std::vector<Triangle>> Graphics::mesh;
 
 Graphics::Graphics()
-	: starConcentration(0.5), mWidth(800), mHeight(600), currentDepth(3)
+	: starConcentration(0.5), mWidth(800), mHeight(600), currentDepth(3), sInit(false)
 {
 	SetSubdivisions(3);
 }
@@ -177,8 +179,7 @@ void Graphics::BindPixelShader(std::wstring filepath)
 
 void Graphics::Clear(Colour colour)
 {
-	float c[4] = { colour.r, colour.g, colour.b, colour.a };
-	pDeviceContext->ClearRenderTargetView(pRTV.Get(), c);
+	pDeviceContext->ClearRenderTargetView(pRTV.Get(), colour.farray());
 	pDeviceContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
 
@@ -269,6 +270,73 @@ void Graphics::DrawImGui()
 	// draw framerate/fps
 	ImGui::Text("Framerate: %.1fms", diff);
 	ImGui::Text("FPS: %.1f", 1000.0f / diff);
+}
+
+void Graphics::InitSkybox()
+{
+	// create verticies and indicies for cube
+	int size = 0.5f;
+	sVerticies.push_back({ -size, -size, -size });
+	sVerticies.push_back({  size, -size, -size });
+	sVerticies.push_back({ -size,  size, -size });
+	sVerticies.push_back({  size,  size, -size });
+	sVerticies.push_back({ -size, -size,  size });
+	sVerticies.push_back({  size, -size,  size });
+	sVerticies.push_back({ -size,  size,  size });
+	sVerticies.push_back({  size,  size,  size });
+	sIndicies = {
+		0, 2, 1,   2, 3, 1,
+		1, 3, 5,   3, 7, 5,
+		2, 6, 3,   3, 6, 7,
+		4, 5, 7,   4, 7, 6,
+		0, 4, 2,   2, 4, 6,
+		0, 1, 4,   1, 5, 4
+	};
+
+	sImages = Skybox::Load("G:\\Coding Projects\\n-body-cpp\\assets");
+}
+
+void Graphics::DrawSkybox()
+{
+	if (!sInit)
+	{
+		InitSkybox();
+	}
+
+	D3D11_TEXTURE2D_DESC texDesc = {};
+	texDesc.Width = 1000u;
+	texDesc.Height = 1000u;
+	texDesc.MipLevels = 1u;
+	texDesc.ArraySize = 6u;
+	texDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	texDesc.SampleDesc.Count = 1u;
+	texDesc.SampleDesc.Quality = 0u;
+	texDesc.Usage = D3D11_USAGE_DEFAULT;
+	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	texDesc.CPUAccessFlags = 0u;
+	texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+	D3D11_SUBRESOURCE_DATA texData = {};
+	texData.pSysMem = sImages.data();
+	texData.SysMemPitch = 4 * sizeof(float) * texDesc.Width; // 4 floats per pixel, width pixels per line
+	texData.SysMemSlicePitch = 0;
+
+	THROWHR(pDevice->CreateTexture2D(
+		&texDesc, 
+		&texData, 
+		pSkyboxTexture.GetAddressOf()
+	));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC resDesc = {};
+	resDesc.Format = texDesc.Format;
+	resDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;		
+	resDesc.Texture2D.MostDetailedMip = 0;
+	resDesc.Texture2D.MipLevels = 1;
+	THROWHR(pDevice->CreateShaderResourceView(
+		pSkyboxTexture.Get(), &resDesc, &pSkyboxTextureView
+	));
+
+	pDeviceContext->PSSetShaderResources(0u, 1u, pSkyboxTextureView.GetAddressOf());
 }
 
 std::pair<std::vector<Vertex>, std::vector<unsigned int>> Graphics::GenerateSphere(float radius, Vec3f position, size_t offset)
@@ -453,6 +521,8 @@ void Graphics::Draw()
 	pDeviceContext->RSSetViewports(1u, &vp);
 
 	pDeviceContext->DrawIndexed(IData.size(), 0u, 0);
+
+	DrawSkybox();
 
 	diff = clock.Diff();
 }
