@@ -4,7 +4,7 @@
 class Skybox
 {
 public:
-	static std::vector<std::vector<Colour>> Load(std::wstring filepath);
+	static ImageData Load(std::wstring filepath);
 
 private:
 	static bool GdiInit();

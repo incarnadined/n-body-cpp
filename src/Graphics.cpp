@@ -3,8 +3,6 @@
 
 #include "Skybox.h"
 
-#pragma comment (lib, "d3d11.lib")
-#pragma comment (lib, "D3DCompiler.lib")
 
 #define THROWHR(hr) if(FAILED(hr)) {MessageBox(nullptr, (LPCWSTR)__LINE__, L"HR Error", MB_OK);}
 
@@ -275,7 +273,7 @@ void Graphics::DrawImGui()
 void Graphics::InitSkybox()
 {
 	// create verticies and indicies for cube
-	int size = 0.5f;
+	float size = 0.5f;
 	sVerticies.push_back({ -size, -size, -size });
 	sVerticies.push_back({  size, -size, -size });
 	sVerticies.push_back({ -size,  size, -size });
@@ -293,7 +291,9 @@ void Graphics::InitSkybox()
 		0, 1, 4,   1, 5, 4
 	};
 
-	sImages = Skybox::Load("G:\\Coding Projects\\n-body-cpp\\assets");
+	sImages = Skybox::Load(L"G:\\Coding Projects\\n-body-cpp\\assets");
+
+	sInit = true;
 }
 
 void Graphics::DrawSkybox()
@@ -304,8 +304,8 @@ void Graphics::DrawSkybox()
 	}
 
 	D3D11_TEXTURE2D_DESC texDesc = {};
-	texDesc.Width = 1000u;
-	texDesc.Height = 1000u;
+	texDesc.Width = sImages.width;
+	texDesc.Height = sImages.height;
 	texDesc.MipLevels = 1u;
 	texDesc.ArraySize = 6u;
 	texDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -316,15 +316,18 @@ void Graphics::DrawSkybox()
 	texDesc.CPUAccessFlags = 0u;
 	texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-	D3D11_SUBRESOURCE_DATA texData = {};
-	texData.pSysMem = sImages.data();
-	texData.SysMemPitch = 4 * sizeof(float) * texDesc.Width; // 4 floats per pixel, width pixels per line
-	texData.SysMemSlicePitch = 0;
+	D3D11_SUBRESOURCE_DATA texData[6] = {};
+	for (size_t i = 0; i < 6; i++)
+	{
+		texData[i].pSysMem = sImages.data[i].data();
+		texData[i].SysMemPitch = 4 * sizeof(float) * texDesc.Width; // 4 floats per pixel, width pixels per line
+		texData[i].SysMemSlicePitch = 0;
+	}
 
 	THROWHR(pDevice->CreateTexture2D(
 		&texDesc, 
-		&texData, 
-		pSkyboxTexture.GetAddressOf()
+		texData, 
+		&pSkyboxTexture
 	));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC resDesc = {};
