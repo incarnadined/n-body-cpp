@@ -20,7 +20,7 @@ struct Vertex
 
 struct Triangle
 {
-	unsigned int a, b, c;
+	unsigned long long a, b, c;
 };
 
 struct ConstantBuffer
