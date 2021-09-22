@@ -12,7 +12,7 @@ Vec3f::Vec3f(float x, float y, float z)
 }
 
 Vec3f::Vec3f(double x, double y, double z)
-	: x((float)x), y((float)y), z((float)z)
+	: x(x), y(y), z(z)
 {
 }
 
@@ -37,7 +37,7 @@ float Vec3f::GetZ()
 
 float Vec3f::magnitude()
 {
-	return std::pow(pow(x, 2.0f) + pow(y, 2.0f) + pow(z, 2.0f), 0.5f);
+	return std::pow(pow(x, 2) + pow(y, 2) + pow(z, 2), 0.5);
 }
 
 Vec3f Vec3f::normalise()

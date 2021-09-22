@@ -79,7 +79,7 @@ private:
 	bool sInit;
 	std::vector<Vertex> sVerticies;
 	std::vector<unsigned int> sIndicies;
-	ImageData sImages;
+	std::vector<std::vector<Colour>> sImages;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pSkyboxTexture;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pSkyboxTextureView;
 
