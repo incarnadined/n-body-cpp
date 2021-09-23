@@ -89,8 +89,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		0, 0, clientArea.right-clientArea.left, clientArea.bottom-clientArea.top, NULL, NULL, hInstance, NULL);
 
 	gfx.Init(hWnd, WIDTH, HEIGHT);
-	gfx.BindVertexShader(L"VertexShader.hlsl");
-	gfx.BindPixelShader(L"PixelShader.hlsl");
+	gfx.BindVertexShader(L"src/VertexShader.hlsl");
+	gfx.BindPixelShader(L"src/PixelShader.hlsl");
 	ImGui_ImplWin32_Init(hWnd);
 
 	std::vector<Body> bodies;

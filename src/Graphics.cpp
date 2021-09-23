@@ -261,7 +261,7 @@ void Graphics::GenerateSphereMesh(int depth)
 void Graphics::DrawImGui()
 {
 	// add slider to change detail of spheres
-	if (ImGui::SliderInt("Subdivisions", &currentDepth, 0, 3))
+	if (ImGui::SliderInt("Subdivisions", &currentDepth, 0, 5))
 	{
 		SetSubdivisions(currentDepth);
 	}
