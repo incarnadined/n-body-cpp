@@ -44,8 +44,9 @@ public:
 	void BindPixelShader(std::wstring filepath);
 	void Clear(Colour colour); // clears the screen to the specified colour - resets rtv, dsv
 	void AddSphere(std::function<std::tuple<float, Vec3f, Colour>()> dataFunction); // adds a sphere location callback to the active drawable objects
-	static void SubdivideIcosahedron(int depth);
-	static void GenerateSphereMesh(int depth); // populates mesh with vertex and index array for a sphere
+	void SubdivideIcosahedron(int depth);
+	void GenerateSphereMesh(int depth); // populates mesh with vertex and index array for a sphere
+	void GenerateCubeMesh(); // populates mesh with vertex and index array for a cube
 	std::pair<std::vector<Vertex>, std::vector<unsigned int>> GenerateSphere(float radius, Vec3f position, size_t offset); // returns vertex and index array for a sphere
 	void Draw(); 
 	void DrawImGui();
@@ -65,6 +66,7 @@ private:
 		>> pSpheres;
 	static std::pair<std::vector<Vertex>, std::vector<Triangle>> mesh;
 
+	bool cube = false;
 	float starConcentration; // star intensity (0-1)
 	float mWidth;
 	float mHeight;

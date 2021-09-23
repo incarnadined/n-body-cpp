@@ -258,12 +258,41 @@ void Graphics::GenerateSphereMesh(int depth)
 	SubdivideIcosahedron(depth);
 }
 
+void Graphics::GenerateCubeMesh()
+{
+	// generate icosahedron
+	float X = 1.0f;
+	float Z = 1.0f;
+	float N = 1.0f;
+
+	mesh.first =
+	{
+		{ -1.0f, -1.0f,  1.0f }, {   1.0f, -1.0f,  1.0f }, { -1.0f, 1.0f,  1.0f, }, {   1.0f, 1.0f,  1.0f, },
+		{ -1.0f, -1.0f, -1.0f }, {   1.0f, -1.0f, -1.0f }, { -1.0f, 1.0f, -1.0f, }, {   1.0f, 1.0f, -1.0f, }
+	};
+
+	mesh.second =
+	{
+		{ 2, 6, 7 }, { 2, 3, 7 }, { 0, 4, 5 }, { 0, 1, 5 }, { 0, 2, 6 }, { 0, 4, 6 },
+		{ 1, 3, 7 }, { 1, 5, 7 }, { 0, 2, 3 }, { 0, 1, 3 }, { 4, 6, 7 }, { 4, 5, 7 },
+	};
+}
+
 void Graphics::DrawImGui()
 {
 	// add slider to change detail of spheres
 	if (ImGui::SliderInt("Subdivisions", &currentDepth, 0, 5))
 	{
 		SetSubdivisions(currentDepth);
+	}
+
+	ImGui::Checkbox("Cube", &cube);
+	if (ImGui::Button("Toggle cubes/spheres"))
+	{
+		if (cube)
+			GenerateCubeMesh();
+		else
+			GenerateSphereMesh(currentDepth);
 	}
 
 	// draw framerate/fps
